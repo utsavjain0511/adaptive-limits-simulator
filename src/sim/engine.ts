@@ -86,10 +86,10 @@ export class Simulation {
     const sum = (k: keyof Omit<TickLog, 'latencies'>) => recent.reduce((a, t) => a + t[k], 0);
     const offered = sum('offered'), good = sum('good');
     const lat = this.log.flatMap((t) => t.latencies).sort((a, b) => a - b);
-    const mean = lat.length ? lat.reduce((a, b) => a + b, 0) / lat.length : 0;
-    const completedP99 = lat.length ? lat[Math.min(lat.length - 1, Math.floor(lat.length * 0.99))] : 0;
     // A stalled backend completes nothing; the oldest in-flight age is a lower bound on its latency.
     const oldestAge = this.inflight.length ? this.nowMs - this.inflight[0].arrivedAt : 0;
+    const mean = lat.length ? lat.reduce((a, b) => a + b, 0) / lat.length : oldestAge;
+    const completedP99 = lat.length ? lat[Math.min(lat.length - 1, Math.floor(lat.length * 0.99))] : 0;
     const p99 = Math.max(completedP99, oldestAge);
     return {
       tMs: this.nowMs,

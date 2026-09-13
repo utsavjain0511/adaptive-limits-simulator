@@ -15,11 +15,12 @@ export function Dashboard({ runs, slaMs }: { runs: RunView[]; slaMs: number }) {
         {runs.map((r) => {
           const m = r.history[r.history.length - 1];
           return (
-            <div key={r.label} className="stat" style={{ borderLeftColor: r.color }}>
-              <div className="stat-label">{r.label}</div>
-              <div className="stat-row"><span>availability</span><b>{m ? pct(m.availability) : '–'}</b></div>
-              <div className="stat-row"><span>goodput</span><b>{m ? `${Math.round(m.goodputRps)} rps` : '–'}</b></div>
-              <div className="stat-row"><span>p99 latency</span><b>{m ? `${Math.round(m.p99LatencyMs)} ms` : '–'}</b></div>
+            <div key={r.label} className="stat">
+              <span className="dot" style={{ background: r.color }} />
+              <span className="stat-name">{r.label}</span>
+              <span className="fig"><b>{m ? pct(m.availability) : '–'}</b> available</span>
+              <span className="fig"><b>{m ? `${Math.round(m.goodputRps).toLocaleString()} rps` : '–'}</b> goodput</span>
+              <span className="fig"><b>{m ? `${Math.round(m.p99LatencyMs).toLocaleString()} ms` : '–'}</b> p99</span>
             </div>
           );
         })}

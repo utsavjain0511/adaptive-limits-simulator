@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 export const WINDOW_POINTS = 600; // 60s at one point per 100ms
 export interface Series { label: string; color: string; data: (number | null)[]; dashed?: boolean; }
 export interface Threshold { value: number; label: string; color: string; }
-interface Props { title: string; unit: string; series: Series[]; thresholds?: Threshold[]; yMax?: number; height?: number; }
+// yMax fixes the axis top; yCap lets it auto-scale but never exceed the cap (values beyond are clipped).
+interface Props { title: string; unit: string; series: Series[]; thresholds?: Threshold[]; yMax?: number; yCap?: number; height?: number; }
 
 const PAD = { left: 44, right: 8, top: 8, bottom: 18 };
 const fmt = (v: number) => (Math.abs(v) >= 10 ? Math.round(v).toLocaleString() : v.toFixed(1));
@@ -14,7 +15,7 @@ function niceCeil(v: number): number {
   return step * mag;
 }
 
-export function RollingChart({ title, unit, series, thresholds = [], yMax, height = 170 }: Props) {
+export function RollingChart({ title, unit, series, thresholds = [], yMax, yCap, height = 170 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [, bump] = useState(0);
   useEffect(() => {
@@ -34,7 +35,7 @@ export function RollingChart({ title, unit, series, thresholds = [], yMax, heigh
     canvas.style.height = `${height}px`;
     const ctx = canvas.getContext('2d')!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw(ctx, width, height, series, thresholds, yMax);
+    draw(ctx, width, height, series, thresholds, yMax, yCap);
   });
 
   return (
@@ -58,7 +59,7 @@ export function RollingChart({ title, unit, series, thresholds = [], yMax, heigh
   );
 }
 
-function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Series[], thresholds: Threshold[], yMax?: number) {
+function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Series[], thresholds: Threshold[], yMax?: number, yCap?: number) {
   ctx.clearRect(0, 0, w, h);
   const plotW = w - PAD.left - PAD.right, plotH = h - PAD.top - PAD.bottom;
   let top = yMax ?? 0;
@@ -66,6 +67,7 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Serie
     for (const s of series) for (const v of s.data) if (v != null && v > top) top = v;
     for (const t of thresholds) if (t.value > top) top = t.value;
     top = top <= 0 ? 1 : niceCeil(top * 1.15);
+    if (yCap != null) top = Math.min(top, yCap);
   }
   const y = (v: number) => PAD.top + plotH - (Math.min(v, top) / top) * plotH;
   const x = (i: number, n: number) => PAD.left + ((WINDOW_POINTS - n + i) / (WINDOW_POINTS - 1)) * plotW;

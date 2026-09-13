@@ -29,7 +29,7 @@ export function Dashboard({ runs, slaMs }: { runs: RunView[]; slaMs: number }) {
           { label: 'offered', color: GRAY, data: pick(base, (m) => m.offeredRps) },
           ...runs.map((r) => ({ label: `${r.label} admitted`, color: r.color, data: pick(r.history, (m) => m.admittedRps) })),
         ]} />
-        <RollingChart title="Concurrency (in-flight)" unit="" yMax={maxCapacity * 4} series={[
+        <RollingChart title="Concurrency (in-flight)" unit="" yCap={maxCapacity * 4} series={[
           { label: 'capacity', color: GRAY, dashed: true, data: pick(base, (m) => m.capacity) },
           ...runs.flatMap((r) => [
             { label: `${r.label} in-flight`, color: r.color, data: pick(r.history, (m) => m.inflight) },

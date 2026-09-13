@@ -15,7 +15,7 @@ const STEPS_PER_SAMPLE = 100 / DT_MS; // one history point per 100ms of simulate
 
 export function useLab(spec: LabSpec): Lab {
   const specRef = useRef(spec);
-  specRef.current = spec;
+  useEffect(() => { specRef.current = spec; });
   const simsRef = useRef<Simulation[]>([]);
   const loadRef = useRef(spec.load);
   const [load, setLoadState] = useState(spec.load);

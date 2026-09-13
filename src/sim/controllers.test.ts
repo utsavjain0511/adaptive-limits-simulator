@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { NoLimit, ConcurrencyLimiter, RpsLimiter } from './controllers';
 import { Simulation, DT_MS } from './engine';
-import type { BackendConfig, TickMetrics } from './types';
+import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
 const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000 };
 const load = (rps: number) => ({ kind: 'sustained' as const, baseRps: rps, peakRps: rps });
@@ -13,7 +13,7 @@ function run(sim: Simulation, seconds: number): TickMetrics {
 
 describe('NoLimit', () => {
   it('admits everything and reports no limit', () => {
-    const c = new NoLimit();
+    const c: AdmissionController = new NoLimit();
     expect(c.shouldAdmit(10_000, 0)).toBe(true);
     expect(c.currentLimit()).toBeNull();
   });
@@ -21,7 +21,7 @@ describe('NoLimit', () => {
 
 describe('ConcurrencyLimiter', () => {
   it('admits only while inflight is below the limit', () => {
-    const c = new ConcurrencyLimiter(3);
+    const c: AdmissionController = new ConcurrencyLimiter(3);
     expect(c.shouldAdmit(2, 0)).toBe(true);
     expect(c.shouldAdmit(3, 0)).toBe(false);
     expect(c.currentLimit()).toBe(3);

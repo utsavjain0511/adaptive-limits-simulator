@@ -30,7 +30,9 @@ body { margin: 0; background: var(--bg); color: var(--ink); }
 .chart { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
 .chart-head { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; margin-bottom: 6px; flex-wrap: wrap; }
 .chart-title { font-weight: 600; }
-.chart-legend { display: flex; gap: 10px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.chart-legend { display: flex; gap: 10px; flex-wrap: wrap; font-variant-numeric: tabular-nums; color: var(--muted); }
+.chart-legend b { color: var(--ink); font-weight: 600; }
+.swatch { display: inline-block; width: 14px; border-top: 2px solid; vertical-align: middle; margin-right: 5px; }
 .knobs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; }
 .knobs label { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); gap: 4px; }
 .presets { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }

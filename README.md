@@ -31,7 +31,8 @@ though the server did the work. The only thing that differs between the two runs
 - `src/sim/adaptive.ts` — `AimdLimiter`, `GradientLimiter`, presets
 - `src/sim/*.test.ts` — unit tests plus scenario tests that assert each lesson's expected outcome
 - `src/app/useLab.ts` — runs the A/B simulations in lockstep with a 60 s rolling history
-- `src/components/` — canvas charts, dashboard, controls
+- `src/anim/flowModel.ts` — particle model for the request-flow animation (dots ∝ rps, admitted/rejected split, dwell = latency)
+- `src/components/` — flow animation, canvas charts, dashboard, controls, sidebar
 - `src/lessons/` — one file per lesson: config, controllers, event buttons, copy
 
 See `docs/RATIONALE.md` for design decisions and trade-offs.

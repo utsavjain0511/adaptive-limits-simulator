@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Simulation, DT_MS } from './engine';
 import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000 };
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10000 };
 const admitAll: AdmissionController = { name: 'all', shouldAdmit: () => true, onComplete() {}, onTick() {}, currentLimit: () => null };
 const admitNone: AdmissionController = { ...admitAll, name: 'none', shouldAdmit: () => false };
 
@@ -43,6 +43,28 @@ describe('Simulation', () => {
     expect(m.inflight).toBeGreaterThan(1000);
     expect(m.p99LatencyMs).toBeGreaterThan(BACKEND.slaMs);
     expect(m.availability).toBeLessThan(0.05);
+  });
+
+  it('abandons requests older than clientTimeoutMs so in-flight stays bounded under overload', () => {
+    const backend = { ...BACKEND, clientTimeoutMs: 2000 };
+    const sim = new Simulation({ backend, load: { kind: 'sustained', baseRps: 600, peakRps: 600 }, controller: admitAll, seed: 1 });
+    const m = run(sim, 60);
+    // Little's law: at most offered × timeout in flight (600 rps × 2 s = 1200), plus Poisson noise.
+    expect(m.inflight).toBeGreaterThan(900);
+    expect(m.inflight).toBeLessThan(1500);
+    expect(m.p99LatencyMs).toBeLessThanOrEqual(backend.clientTimeoutMs);
+    expect(m.timedOutRps).toBeGreaterThan(500);
+    expect(m.availability).toBeLessThan(0.05);
+  });
+
+  it('reports abandoned requests to the controller as completions at the timeout latency', () => {
+    const seen: number[] = [];
+    const recording: AdmissionController = { ...admitAll, onComplete: (latencyMs) => { seen.push(latencyMs); } };
+    const backend = { ...BACKEND, clientTimeoutMs: 2000 };
+    const sim = new Simulation({ backend, load: { kind: 'sustained', baseRps: 600, peakRps: 600 }, controller: recording, seed: 1 });
+    run(sim, 10);
+    expect(seen.some((l) => l < backend.clientTimeoutMs)).toBe(true);   // normal completions still reported
+    expect(seen.filter((l) => l === backend.clientTimeoutMs).length).toBeGreaterThan(1000); // abandoned ones too
   });
 
   it('applies a capacity event for its duration only, one per kind', () => {

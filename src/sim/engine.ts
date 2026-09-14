@@ -66,8 +66,9 @@ export class Simulation {
     const remaining: Inflight[] = [];
     for (const r of this.inflight) {
       r.remainingMs -= progress;
-      if (r.remainingMs > 0) { remaining.push(r); continue; }
       const latency = this.nowMs - r.arrivedAt;
+      // A client that has waited clientTimeoutMs gives up; its request leaves the backend unfinished.
+      if (r.remainingMs > 0 && latency < this.config.backend.clientTimeoutMs) { remaining.push(r); continue; }
       latencies.push(latency);
       if (latency <= this.config.backend.slaMs) good++; else timedOut++;
       ctrl.onComplete(latency, this.nowMs);

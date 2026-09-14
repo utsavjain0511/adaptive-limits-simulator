@@ -45,7 +45,7 @@ export function Lesson4() {
   return (
     <LessonLayout spec={spec} lab={lab}
       title="Adaptive concurrency limits"
-      intro="Instead of guessing a limit, measure it. Both algorithms watch request latency: when it rises above the no-load baseline the backend is queueing, so the limit shrinks; when latency is healthy the limit probes upward. Same capacity drop as before."
+      intro="Instead of guessing a limit, measure it. Both algorithms watch request latency: when it rises above the no-load baseline the backend is queueing, so the limit shrinks; when latency is healthy and at least half the limit is in use, the limit probes upward. Same capacity drop as before."
       watch={[
         'AIMD (TCP-style): +step per healthy window, ×backoff when latency exceeds threshold × baseline. Simple and robust; it always probes above capacity until latency says stop, so it draws a saw-tooth.',
         'Gradient (Netflix concurrency-limits style): limit ← limit × (tolerance × baseline / latency) + headroom, smoothed. Proportional, smoother, tunable.',

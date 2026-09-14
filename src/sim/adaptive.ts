@@ -23,6 +23,8 @@ abstract class WindowedLimiter implements AdmissionController {
   abstract readonly name: string;
   protected limit: number;
   private samples: number[] = [];
+  private inflightSum = 0;
+  private inflightSamples = 0;
   private windowEndsAt: number;
   private readonly baseline = new BaselineTracker();
 
@@ -30,15 +32,30 @@ abstract class WindowedLimiter implements AdmissionController {
     this.limit = bounds.initialLimit;
     this.windowEndsAt = bounds.windowMs;
   }
-  shouldAdmit(inflight: number): boolean { return inflight < this.limit; }
+  shouldAdmit(inflight: number): boolean {
+    const admit = inflight < this.limit;
+    // `inflight` is the count before this request; sample what it will be once admitted.
+    this.inflightSum += admit ? inflight + 1 : inflight;
+    this.inflightSamples++;
+    return admit;
+  }
   onComplete(latencyMs: number): void { this.samples.push(latencyMs); }
   onTick(nowMs: number): void {
     if (nowMs < this.windowEndsAt) return;
     this.windowEndsAt = nowMs + this.bounds.windowMs;
+    // Healthy latency only justifies a higher limit if the current one was actually being used; a lightly
+    // loaded service must not ratchet its limit up to the maximum and then have no headroom to shed with.
+    // The mean in-flight seen at arrivals is used rather than the peak: Poisson arrivals see time averages,
+    // and a single burst must not unlock a one-way growth step.
+    const meanInflight = this.inflightSamples ? this.inflightSum / this.inflightSamples : 0;
+    const utilised = meanInflight * 2 >= this.limit;
+    this.inflightSum = 0;
+    this.inflightSamples = 0;
     if (this.samples.length === 0) return;
     const avg = this.samples.reduce((a, b) => a + b, 0) / this.samples.length;
     this.samples = [];
-    this.limit = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
+    const next = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
+    if (next < this.limit || utilised) this.limit = next;
   }
   currentLimit(): number { return Math.floor(this.limit); }
   protected abstract update(windowAvgMs: number, baselineMs: number): number;

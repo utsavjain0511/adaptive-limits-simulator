@@ -46,10 +46,10 @@ side. Three layers, dependencies flow downward only:
   the engine must not special-case a controller.
 - **Latency metrics fall back to the oldest in-flight age** when nothing completes in the window (a stalled
   backend would otherwise report 0 ms). Keep that behaviour if you touch `metrics()` or the flow model.
-- **Scenario tests are the tuning harness.** Tests named `lesson N scenario` assert each lesson's expected
+- **Scenario tests are the tuning harness.** Describe blocks named `lesson N scenario: ...` (today only lesson 4 in `adaptive.test.ts`) assert a lesson's expected
   picture (e.g. AIMD keeps goodput above a floor during a capacity drop where static 50 does not). If a
   change to backend defaults, presets, or the engine makes one fail, the fix is usually the tuning, not the
-  assertion; if you do change an assertion, say so in the PR.
+  assertion; if you do change an assertion, say so in the PR. New lessons should get one too.
 - Knob changes re-instantiate the limiter rather than mutating it live; the visible jump is intentional.
 
 `README.md` lists the module map for readers and `docs/RATIONALE.md` records design decisions and

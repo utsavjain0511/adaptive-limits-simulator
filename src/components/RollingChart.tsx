@@ -93,12 +93,13 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Serie
     ctx.restore();
   }
 
-  for (const s of series) {
+  series.forEach((s, k) => {
     const n = s.data.length;
-    if (n === 0) continue;
+    if (n === 0) return;
     ctx.save();
     ctx.strokeStyle = s.color; ctx.lineWidth = 2;
-    if (s.dashed) ctx.setLineDash([5, 4]);
+    // Coincident dashed lines (e.g. a limit sitting exactly on capacity) interleave instead of hiding each other.
+    if (s.dashed) { ctx.setLineDash([5, 4]); ctx.lineDashOffset = (k % 3) * 3; }
     ctx.beginPath();
     let pen = false;
     for (let i = 0; i < n; i++) {
@@ -108,5 +109,34 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Serie
     }
     ctx.stroke();
     ctx.restore();
+  });
+
+  // Where a later solid series exactly matches an earlier one it would hide it completely (both runs behave
+  // identically until they diverge), so re-draw the hidden series' colour as dashes on top of that stretch.
+  for (let a = 1; a < series.length; a++) {
+    const top = series[a];
+    if (top.dashed) continue;
+    for (let b = 0; b < a; b++) {
+      const under = series[b];
+      if (under.dashed || under.color === top.color || under.data.length !== top.data.length) continue;
+      drawOverlap(ctx, top, under, b, x, y);
+    }
   }
+}
+
+function drawOverlap(ctx: CanvasRenderingContext2D, top: Series, under: Series, phase: number, x: (i: number, n: number) => number, y: (v: number) => number) {
+  const n = top.data.length;
+  ctx.save();
+  ctx.strokeStyle = under.color; ctx.lineWidth = 2;
+  ctx.setLineDash([4, 8]); ctx.lineDashOffset = phase * 4;
+  ctx.beginPath();
+  let pen = false;
+  for (let i = 0; i < n; i++) {
+    const t = top.data[i], u = under.data[i];
+    const same = t != null && u != null && Math.abs(t - u) <= 1e-6 * Math.max(1, Math.abs(t));
+    if (!same) { pen = false; continue; }
+    if (!pen) { ctx.moveTo(x(i, n), y(t)); pen = true; } else ctx.lineTo(x(i, n), y(t));
+  }
+  ctx.stroke();
+  ctx.restore();
 }

@@ -117,13 +117,30 @@ describe('goodput, timeouts and availability', () => {
     expect(m.availability).toBe(0);
   });
 
-  it('rejected requests are not good responses, so availability = goodput ÷ offered', () => {
+  it('rejections are failures: availability = good ÷ (good + rejected + timed out)', () => {
     const m = run(sim(300, new ConcurrencyLimiter(20)), 10);
-    expect(m.availability).toBeCloseTo(Math.min(1, m.goodputRps / m.offeredRps), 6);
+    expect(m.availability).toBeCloseTo(m.goodputRps / (m.goodputRps + m.rejectedRps + m.timedOutRps), 6);
     expect(m.availability).toBeLessThan(0.6);
+    expect(run(sim(100, admitNone), 3).availability).toBe(0);
   });
 
-  it('availability is clamped to 1 (completions can briefly outnumber arrivals in a window)', () => {
+  it('pending requests are not failures: availability stays 1 while everything is still in flight within the SLA', () => {
+    const slow: BackendConfig = { ...BACKEND, serviceTimeMs: 2500, slaMs: 3000 }; // fastest completion is 0.7 × 2.5 s = 1.75 s
+    const m = run(sim(10, admitAll, slow), 1.5); // nothing can have completed yet
+    expect(m.inflight).toBeGreaterThan(0);
+    expect(m.goodputRps).toBe(0);
+    expect(m.availability).toBe(1);
+  });
+
+  it('an in-flight request already older than the SLA counts as failed before it completes', () => {
+    const stalled: BackendConfig = { ...BACKEND, capacity: 1, serviceTimeMs: 100_000 };
+    const m = run(sim(10, admitAll, stalled), 3); // nothing completes; most of the backlog is past the 1 s SLA
+    expect(m.goodputRps).toBe(0);
+    expect(m.timedOutRps).toBe(0);
+    expect(m.availability).toBe(0);
+  });
+
+  it('availability never exceeds 1', () => {
     const s = sim(100);
     for (let i = 0; i < 500; i++) expect(s.step().availability).toBeLessThanOrEqual(1);
   });

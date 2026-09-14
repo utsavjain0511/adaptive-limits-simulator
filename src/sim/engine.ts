@@ -86,6 +86,10 @@ export class Simulation {
     const secs = (recent.length * DT_MS) / 1000;
     const sum = (k: keyof Omit<TickLog, 'latencies'>) => recent.reduce((a, t) => a + t[k], 0);
     const offered = sum('offered'), good = sum('good');
+    // Availability = good / (good + failed). Pending requests are not failures, but an in-flight request
+    // already older than the SLA can no longer succeed, so it counts as failed before it completes.
+    const lateInflight = this.inflight.filter((r) => this.nowMs - r.arrivedAt > this.config.backend.slaMs).length;
+    const failed = sum('timedOut') + sum('rejected') + lateInflight;
     const lat = this.log.flatMap((t) => t.latencies).sort((a, b) => a - b);
     // A stalled backend completes nothing; the oldest in-flight age is a lower bound on its latency.
     const oldestAge = this.inflight.length ? this.nowMs - this.inflight[0].arrivedAt : 0;
@@ -98,7 +102,7 @@ export class Simulation {
       inflight: this.inflight.length, limit, capacity,
       meanLatencyMs: mean, p99LatencyMs: p99,
       goodputRps: good / secs, timedOutRps: sum('timedOut') / secs,
-      availability: offered ? Math.min(1, good / offered) : 1,
+      availability: good + failed > 0 ? good / (good + failed) : 1,
     };
   }
 }

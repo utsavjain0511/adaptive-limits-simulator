@@ -67,6 +67,8 @@ trade-offs. When you make a non-obvious trade-off, add a bullet to RATIONALE rat
 - Before opening a PR: lint, build, and tests must pass locally; paste the commands you ran into the
   Testing section. Open it with `gh pr create` and fill the body from `.github/pull_request_template.md`
   (Summary, Motivation, Testing). Every section is required; if there was no test to run, say why.
-- After opening the PR, stop and report the URL. Do not start the next task on the same branch.
+- After opening the PR, stop and report the URL. Do not start the next task on the same branch. PRs are
+  authored by the user's own GitHub account, so GitHub will not show an Approve button; the merge itself is
+  the approval. Branches are deleted on merge; after a merge, `git checkout main && git pull` before branching.
 
 If a repo-specific convention is not covered here, ask rather than assume.

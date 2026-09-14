@@ -75,4 +75,40 @@ describe('Simulation', () => {
     run(sim, 1);
     expect(sim.step().capacity).toBe(50);
   });
+
+  it('rounds capacity to whole workers once, so the reported capacity is the number actually serving', () => {
+    const sim = new Simulation({ backend: BACKEND, load: { kind: 'sustained', baseRps: 10, peakRps: 10 }, controller: admitAll, seed: 1 });
+    sim.triggerEvent({ kind: 'capacity', multiplier: 0.15, durationMs: 1000 }); // 7.5 workers is not a thing
+    expect(sim.step().capacity).toBe(8);
+  });
+
+  it('serves nothing at capacity 0 and recovers when capacity returns', () => {
+    const backend = { ...BACKEND, clientTimeoutMs: 3000 };
+    const sim = new Simulation({ backend, load: { kind: 'sustained', baseRps: 100, peakRps: 100 }, controller: admitAll, seed: 1 });
+    run(sim, 2);
+    sim.triggerEvent({ kind: 'capacity', multiplier: 0, durationMs: 2000 });
+    const during = run(sim, 2);
+    expect(during.capacity).toBe(0);
+    expect(during.inflight).toBeGreaterThan(150);          // ~100 rps × 2 s piled up
+    expect(during.goodputRps).toBe(0);
+    expect(during.timedOutRps).toBe(0);                    // nothing completes at all (one worker would finish ~5/s)
+    expect(during.p99LatencyMs).toBeGreaterThan(1900);     // age of the oldest waiting request
+    const after = run(sim, 3);
+    expect(after.capacity).toBe(50);
+    expect(after.inflight).toBeLessThan(50);
+    expect(after.goodputRps).toBeGreaterThan(75);
+  });
+
+  it('binds service time when a request starts being served, not when it was admitted', () => {
+    // One worker, a permanent backlog, and clients that never give up: throughput is 1 / service time.
+    const backend = { ...BACKEND, capacity: 1, clientTimeoutMs: 1_000_000 };
+    const sim = new Simulation({ backend, load: { kind: 'sustained', baseRps: 10, peakRps: 10 }, controller: admitAll, seed: 1 });
+    const completions = (m: TickMetrics) => m.goodputRps + m.timedOutRps;
+    run(sim, 3);
+    sim.triggerEvent({ kind: 'serviceTime', multiplier: 3, durationMs: 4000 });
+    const during = run(sim, 4);
+    expect(completions(during)).toBeLessThan(2.5);   // queued before the slowdown, served at 3× (~1.7/s)
+    const after = run(sim, 3);
+    expect(completions(after)).toBeGreaterThan(3.5); // queued during the slowdown, served at 1× (~4.7/s)
+  });
 });

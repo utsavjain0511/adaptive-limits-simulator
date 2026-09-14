@@ -24,7 +24,7 @@ npm run build    # static build in dist/
 Discrete 20 ms ticks. Arrivals are Poisson from a seeded RNG (identical for both runs). The backend is a FIFO
 worker pool with variable service times: `capacity` workers each serve one request at a time (200 ms ± 30%,
 fixed per request id), and admitted requests beyond that wait in arrival order, so latency is queue wait plus
-service time and throughput tops out at `capacity ÷ service time`. Completions slower than the client deadline (1 s) count as failures even
+service time and throughput tops out at about `capacity ÷ service time` (~240 rps here). Completions slower than the client deadline (1 s) count as failures even
 though the server did the work, and a client that has waited 10 s gives up and abandons its request. The only
 thing that differs between the two runs is the admission controller.
 

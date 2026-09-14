@@ -6,7 +6,7 @@ import {
   AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS,
   type AimdConfig, type GradientConfig, type PresetName,
 } from '../sim/adaptive';
-import { CAPACITY_DROP, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from './defaults';
+import { CAPACITY_DROP, CAPACITY_DROP_LABEL, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from './defaults';
 import type { AdmissionController } from '../sim/types';
 
 type Algo = 'aimd' | 'gradient';
@@ -49,9 +49,9 @@ export function Lesson4() {
       watch={[
         'AIMD (TCP-style): +step per healthy window, ×backoff when latency exceeds threshold × baseline. Simple and robust; it always probes above capacity until latency says stop, so it draws a saw-tooth.',
         'Gradient (Netflix concurrency-limits style): limit ← limit × (tolerance × baseline / latency) + headroom, smoothed. Proportional, smoother, tunable.',
-        'Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts and oscillates. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.',
+        'Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts — AIMD swings between a handful and ~70 in flight, Gradient over-shrinks and parks at its floor. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.',
       ]}
-      events={[{ label: 'Capacity drop (50 → 8 slots, 10 s)', event: CAPACITY_DROP }]}
+      events={[{ label: CAPACITY_DROP_LABEL, event: CAPACITY_DROP }]}
     >
       <div className="panel">
         <div className="presets">

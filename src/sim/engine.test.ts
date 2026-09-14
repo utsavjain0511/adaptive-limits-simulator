@@ -37,9 +37,13 @@ describe('Simulation', () => {
     expect(m.inflight).toBe(0);
   });
 
-  it('queues under sustained overload: latency past SLA and goodput collapses', () => {
+  it('queues under sustained overload: completions cap at capacity / service time, latency passes the SLA, goodput collapses', () => {
     const sim = new Simulation({ backend: BACKEND, load: { kind: 'sustained', baseRps: 600, peakRps: 600 }, controller: admitAll, seed: 1 });
-    const m = run(sim, 30);
+    const early = run(sim, 10); // before any client has given up
+    const completions = early.goodputRps + early.timedOutRps;
+    expect(completions).toBeGreaterThan(200); // 50 workers / ~0.21 s ≈ 238/s; capacity 100 would give ~475/s
+    expect(completions).toBeLessThan(280);
+    const m = run(sim, 20);
     expect(m.inflight).toBeGreaterThan(1000);
     expect(m.p99LatencyMs).toBeGreaterThan(BACKEND.slaMs);
     expect(m.availability).toBeLessThan(0.05);

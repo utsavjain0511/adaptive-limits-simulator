@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS } from './adaptive';
 import { ConcurrencyLimiter } from './controllers';
 import { Simulation, DT_MS } from './engine';
-import { CAPACITY_DROP } from '../lessons/defaults';
-import type { AdmissionController, BackendConfig, TickMetrics } from './types';
+import { CAPACITY_DROP, DEFAULT_BACKEND } from './scenario';
+import type { AdmissionController, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+// The lesson's own backend and event, so the scenario follows the lesson if either is retuned.
+const BACKEND = DEFAULT_BACKEND;
+const DROP = CAPACITY_DROP;
 const load = { kind: 'sustained' as const, baseRps: 300, peakRps: 300 };
-const DROP = CAPACITY_DROP; // the lesson's own event, so the scenario follows the lesson if it is retuned
 function run(sim: Simulation, seconds: number): TickMetrics {
   let m!: TickMetrics;
   for (let i = 0; i < (seconds * 1000) / DT_MS; i++) m = sim.step();
@@ -44,12 +45,19 @@ describe('lesson 4 scenario: capacity drop', () => {
     ['AIMD', () => new AimdLimiter(AIMD_PRESETS.stable)],
     ['Gradient', () => new GradientLimiter(GRADIENT_PRESETS.stable)],
   ] as const) {
-    it(`${name} keeps goodput > 0 and latency under SLA during the drop where static 50 does not`, () => {
+    it(`${name} backs off within seconds of the drop and is under the SLA with goodput by its end, where static 50 is not`, () => {
       const a = mk(new ConcurrencyLimiter(50)), b = mk(make());
       run(a, 10); run(b, 10);
       a.triggerEvent(DROP); b.triggerEvent(DROP);
-      const ma = run(a, 8), mb = run(b, 8);
-      expect(ma.availability).toBeLessThan(0.05);
+      // Backing off from ~60 to ~12 in flight takes a few windows, so the first seconds of the drop are over
+      // the SLA for the adaptive run too; from t+5 s on it must be delivering every second.
+      run(a, 5); run(b, 5);
+      for (let s = 0; s < 3; s++) {
+        const ma = run(a, 1), mb = run(b, 1);
+        expect(ma.availability).toBeLessThan(0.05);
+        expect(mb.goodputRps).toBeGreaterThan(20);
+      }
+      const mb = run(b, 0.02); // one tick: the state at the end of the 8 s sampled window
       expect(mb.limit!).toBeLessThan(35);
       expect(mb.p99LatencyMs).toBeLessThan(BACKEND.slaMs);
       expect(mb.goodputRps).toBeGreaterThan(30);

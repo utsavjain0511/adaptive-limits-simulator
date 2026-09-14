@@ -1,11 +1,12 @@
-import type { BackendConfig, SimEvent } from '../sim/types';
+import { CAPACITY_DROP, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN } from '../sim/scenario';
 
-export const DEFAULT_BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+export { CAPACITY_DROP, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN };
+
 export const RUN_A = '#d1495b';
 export const RUN_B = '#2a9d8f';
 export const GRAY = '#5b6069';
 export const SLA_COLOR = '#1f2328';
 export const SEED = 42;
 
-export const CAPACITY_DROP: SimEvent = { kind: 'capacity', multiplier: 0.16, durationMs: 10_000 };
-export const DOWNSTREAM_SLOWDOWN: SimEvent = { kind: 'serviceTime', multiplier: 3, durationMs: 10_000 };
+export const CAPACITY_DROP_LABEL = `Capacity drop (${DEFAULT_BACKEND.capacity} → ${CAPACITY_DROP_WORKERS} slots, ${CAPACITY_DROP.durationMs / 1000} s)`;
+export const DOWNSTREAM_SLOWDOWN_LABEL = `Downstream slowdown (${DOWNSTREAM_SLOWDOWN.multiplier}× latency, ${DOWNSTREAM_SLOWDOWN.durationMs / 1000} s)`;

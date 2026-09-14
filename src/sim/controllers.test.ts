@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { NoLimit, ConcurrencyLimiter, RpsLimiter } from './controllers';
 import { Simulation, DT_MS } from './engine';
-import type { AdmissionController, BackendConfig, TickMetrics } from './types';
+import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN } from './scenario';
+import type { AdmissionController, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+const BACKEND = DEFAULT_BACKEND; // the lessons' backend, so the scenario tests follow the lessons
 const load = (rps: number) => ({ kind: 'sustained' as const, baseRps: rps, peakRps: rps });
 function run(sim: Simulation, seconds: number): TickMetrics {
   let m!: TickMetrics;
@@ -48,8 +49,7 @@ describe('RpsLimiter', () => {
     const mk = (c: RpsLimiter | ConcurrencyLimiter) => new Simulation({ backend: BACKEND, load: load(300), controller: c, seed: 1 });
     const a = mk(new RpsLimiter(200)), b = mk(new ConcurrencyLimiter(40));
     run(a, 5); run(b, 5);
-    const spike = { kind: 'serviceTime' as const, multiplier: 3, durationMs: 10_000 };
-    a.triggerEvent(spike); b.triggerEvent(spike);
+    a.triggerEvent(DOWNSTREAM_SLOWDOWN); b.triggerEvent(DOWNSTREAM_SLOWDOWN);
     const ma = run(a, 8), mb = run(b, 8);
     expect(ma.inflight).toBeGreaterThan(100);
     expect(ma.availability).toBeLessThan(0.1);

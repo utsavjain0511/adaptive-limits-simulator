@@ -1,7 +1,7 @@
 import { useLab, type LabSpec } from '../app/useLab';
 import { LessonLayout } from '../components/LessonLayout';
 import { ConcurrencyLimiter, RpsLimiter } from '../sim/controllers';
-import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN, RUN_A, RUN_B, SEED } from './defaults';
+import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN, DOWNSTREAM_SLOWDOWN_LABEL, RUN_A, RUN_B, SEED } from './defaults';
 
 const SPEC: LabSpec = {
   backend: DEFAULT_BACKEND, seed: SEED,
@@ -23,7 +23,7 @@ export function Lesson2() {
         'The concurrency limiter caps in-flight at 40. Admitted rate drops automatically to ~67 rps, latency stays ~600 ms (under SLA), goodput stays positive, and recovery is instant.',
         'Concurrency is the resource you are actually protecting; RPS is only a proxy that assumes latency never changes.',
       ]}
-      events={[{ label: 'Downstream slowdown (3× latency, 10 s)', event: DOWNSTREAM_SLOWDOWN }]}
+      events={[{ label: DOWNSTREAM_SLOWDOWN_LABEL, event: DOWNSTREAM_SLOWDOWN }]}
     />
   );
 }

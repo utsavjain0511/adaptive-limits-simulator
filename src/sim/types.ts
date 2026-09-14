@@ -3,6 +3,7 @@ export interface BackendConfig {
   serviceTimeMs: number;   // nominal per-request service time
   overloadPenalty: number; // extra slowdown per unit of oversubscription (thrashing)
   slaMs: number;           // client deadline; slower completions count as failures
+  clientTimeoutMs: number; // client gives up and abandons the request; bounds in-flight under overload
 }
 
 export type LoadKind = 'ramp' | 'spike' | 'sustained' | 'oscillating';

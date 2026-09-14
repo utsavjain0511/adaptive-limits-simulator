@@ -24,7 +24,8 @@ npm run build    # static build in dist/
 Discrete 20 ms ticks. Arrivals are Poisson from a seeded RNG (identical for both runs). The backend serves
 `capacity` requests at nominal speed; beyond that, requests share the budget and pay a thrashing penalty, so
 latency and throughput both degrade. Completions slower than the client deadline (1 s) count as failures even
-though the server did the work. The only thing that differs between the two runs is the admission controller.
+though the server did the work, and a client that has waited 10 s gives up and abandons its request. The only
+thing that differs between the two runs is the admission controller.
 
 - `src/sim/engine.ts` — tick loop, arrivals, backend physics, metrics
 - `src/sim/controllers.ts` — `NoLimit`, `ConcurrencyLimiter`, `RpsLimiter`

@@ -4,7 +4,7 @@ import { ConcurrencyLimiter } from './controllers';
 import { Simulation, DT_MS } from './engine';
 import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000 };
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10000 };
 const load = { kind: 'sustained' as const, baseRps: 300, peakRps: 300 };
 const DROP = { kind: 'capacity' as const, multiplier: 0.3, durationMs: 10_000 };
 function run(sim: Simulation, seconds: number): TickMetrics {

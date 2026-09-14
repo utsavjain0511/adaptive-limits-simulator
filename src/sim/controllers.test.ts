@@ -3,7 +3,7 @@ import { NoLimit, ConcurrencyLimiter, RpsLimiter } from './controllers';
 import { Simulation, DT_MS } from './engine';
 import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000 };
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10000 };
 const load = (rps: number) => ({ kind: 'sustained' as const, baseRps: rps, peakRps: rps });
 function run(sim: Simulation, seconds: number): TickMetrics {
   let m!: TickMetrics;

@@ -8,7 +8,7 @@ const LATENCY_WINDOW_TICKS = 3000 / DT_MS;   // 3s window for percentiles
 
 export interface SimConfig { backend: BackendConfig; load: LoadPattern; controller: AdmissionController; seed?: number; }
 
-interface Inflight { id: number; arrivedAt: number; remainingMs: number; }
+interface Inflight { id: number; arrivedAt: number; remainingMs?: number; } // remainingMs is set when the request first holds a worker
 interface TickLog { offered: number; admitted: number; rejected: number; good: number; timedOut: number; latencies: number[]; }
 
 export class Simulation {
@@ -35,7 +35,7 @@ export class Simulation {
     for (const { event } of this.active) {
       if (event.kind === 'capacity') capacity *= event.multiplier; else serviceTimeMs *= event.multiplier;
     }
-    return { capacity, serviceTimeMs };
+    return { capacity: Math.round(capacity), serviceTimeMs }; // whole workers; 0 means nothing is served
   }
 
   step(): TickMetrics {
@@ -49,26 +49,30 @@ export class Simulation {
       const id = this.nextId++;
       if (ctrl.shouldAdmit(this.inflight.length, this.nowMs)) {
         admitted++;
-        this.inflight.push({ id, arrivedAt: this.nowMs, remainingMs: serviceTimeMs * (0.7 + 0.6 * hashUnit(id)) });
+        this.inflight.push({ id, arrivedAt: this.nowMs });
       } else rejected++;
     }
 
-    // Beyond capacity, requests share a fixed processing budget and pay a thrashing penalty.
-    const n = this.inflight.length;
-    const over = Math.max(0, n - capacity);
-    const share = n <= capacity ? 1 : capacity / n;
-    const penalty = 1 / (1 + (this.config.backend.overloadPenalty * over) / capacity);
-    const progress = DT_MS * share * penalty;
+    // FIFO worker pool: in-flight order is arrival order, so the first `capacity` requests hold a worker and
+    // progress; the rest wait without progressing. Service time is bound when a request first gets a worker,
+    // so it reflects the backend's speed at that moment, not at admission. If capacity drops below the number
+    // already being served, the youngest of them pause (like a CPU stall) and resume when a worker frees up.
+    const serving = Math.min(capacity, this.inflight.length);
+    for (let i = 0; i < serving; i++) {
+      const r = this.inflight[i];
+      r.remainingMs ??= serviceTimeMs * (0.7 + 0.6 * hashUnit(r.id));
+      r.remainingMs -= DT_MS;
+    }
 
     this.nowMs += DT_MS;
     const latencies: number[] = [];
     let good = 0, timedOut = 0;
     const remaining: Inflight[] = [];
     for (const r of this.inflight) {
-      r.remainingMs -= progress;
+      const finished = r.remainingMs != null && r.remainingMs <= 0;
       const latency = this.nowMs - r.arrivedAt;
       // A client that has waited clientTimeoutMs gives up; its request leaves the backend unfinished.
-      if (r.remainingMs > 0 && latency < this.config.backend.clientTimeoutMs) { remaining.push(r); continue; }
+      if (!finished && latency < this.config.backend.clientTimeoutMs) { remaining.push(r); continue; }
       latencies.push(latency);
       if (latency <= this.config.backend.slaMs) good++; else timedOut++;
       ctrl.onComplete(latency, this.nowMs);

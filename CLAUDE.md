@@ -65,8 +65,10 @@ trade-offs. When you make a non-obvious trade-off, add a bullet to RATIONALE rat
 - Commit messages use the conventional prefixes already in the history: `feat(sim):`, `feat(ui):`,
   `fix(app):`, `test(sim):`, `docs:`, `chore:`. Scope is the top-level `src/` directory touched.
 - Before opening a PR: lint, build, and tests must pass locally; paste the commands you ran into the
-  Testing section. Open it with `gh pr create` and fill the body from `.github/pull_request_template.md`
-  (Summary, Motivation, Testing). Every section is required; if there was no test to run, say why.
+  Testing section. Then run the `/code-review` skill on the branch's changes and fix what it flags before
+  pushing; re-run lint, build, and tests if a fix touched code. Open the PR with `gh pr create` and fill the
+  body from `.github/pull_request_template.md` (Summary, Motivation, Testing). Every section is required; if
+  there was no test to run, say why.
 - After opening the PR, stop and report the URL. Do not start the next task on the same branch. PRs are
   authored by the user's own GitHub account, so GitHub will not show an Approve button; the merge itself is
   the approval. Branches are deleted on merge; after a merge, `git checkout main && git pull` before branching.

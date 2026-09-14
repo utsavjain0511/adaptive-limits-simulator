@@ -24,8 +24,9 @@ side. Three layers, dependencies flow downward only:
 
 1. **`src/sim/`** — pure TypeScript, no React, fully deterministic. `Simulation` in `engine.ts` advances in
    20 ms ticks (`DT_MS`): Poisson arrivals from a seeded `mulberry32` RNG, each request asks the
-   `AdmissionController` (`types.ts`) whether it is admitted, in-flight requests share the backend's budget
-   and pay a thrashing penalty past `capacity`, and completions slower than `slaMs` count as failures.
+   `AdmissionController` (`types.ts`) whether it is admitted, the backend is a FIFO worker pool with variable
+   service times (`capacity` workers serve the oldest admitted requests; the rest wait in arrival order), and
+   completions slower than `slaMs` count as failures.
    `controllers.ts` holds the static policies (`NoLimit`, `ConcurrencyLimiter`, `RpsLimiter`);
    `adaptive.ts` holds `AimdLimiter` and `GradientLimiter` plus their `stable`/`aggressive`/`sluggish`
    presets. `SimEvent`s (capacity drop, downstream slowdown) temporarily scale the backend.

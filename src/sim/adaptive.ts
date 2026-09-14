@@ -65,13 +65,13 @@ export class GradientLimiter extends WindowedLimiter {
 const BOUNDS: AdaptiveBounds = { initialLimit: 50, minLimit: 2, maxLimit: 200, windowMs: 500 };
 
 export const AIMD_PRESETS: Record<PresetName, AimdConfig> = {
-  stable:     { ...BOUNDS, latencyThresholdFactor: 2.0, increaseStep: 2, backoffRatio: 0.8 },
+  stable:     { ...BOUNDS, latencyThresholdFactor: 1.3, increaseStep: 2, backoffRatio: 0.8 },
   aggressive: { ...BOUNDS, latencyThresholdFactor: 1.2, increaseStep: 10, backoffRatio: 0.5 },
   sluggish:   { ...BOUNDS, windowMs: 1000, latencyThresholdFactor: 3.0, increaseStep: 1, backoffRatio: 0.9 },
 };
 
 export const GRADIENT_PRESETS: Record<PresetName, GradientConfig> = {
-  stable:     { ...BOUNDS, tolerance: 1.5, smoothing: 0.5, headroom: 4 },
+  stable:     { ...BOUNDS, tolerance: 1.2, smoothing: 0.5, headroom: 4 },
   aggressive: { ...BOUNDS, tolerance: 1.05, smoothing: 1.0, headroom: 12 },
   sluggish:   { ...BOUNDS, tolerance: 2.0, smoothing: 0.1, headroom: 1 },
 };

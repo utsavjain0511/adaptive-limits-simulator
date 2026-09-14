@@ -1,7 +1,6 @@
 export interface BackendConfig {
-  capacity: number;        // concurrent requests served at nominal speed
-  serviceTimeMs: number;   // nominal per-request service time
-  overloadPenalty: number; // extra slowdown per unit of oversubscription (thrashing)
+  capacity: number;        // worker slots; requests beyond this wait in a FIFO queue
+  serviceTimeMs: number;   // nominal per-request service time (each request varies ×0.7–1.3)
   slaMs: number;           // client deadline; slower completions count as failures
   clientTimeoutMs: number; // client gives up and abandons the request; bounds in-flight under overload
 }

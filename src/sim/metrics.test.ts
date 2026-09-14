@@ -4,7 +4,7 @@ import { ConcurrencyLimiter } from './controllers';
 import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
 // Explains what each field of TickMetrics means and how it is computed.
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10_000 };
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10_000 };
 const admitAll: AdmissionController = { name: 'all', shouldAdmit: () => true, onComplete() {}, onTick() {}, currentLimit: () => null };
 const admitNone: AdmissionController = { ...admitAll, name: 'none', shouldAdmit: () => false };
 const sustained = (rps: number) => ({ kind: 'sustained' as const, baseRps: rps, peakRps: rps });
@@ -81,7 +81,7 @@ describe('latency', () => {
   });
 
   it('a serviceTime event scales latency by its multiplier', () => {
-    const s = sim(50); // 50 rps × 0.6 s = 30 in flight after the event: still under capacity, so no thrashing on top
+    const s = sim(50); // 50 rps × 0.6 s = 30 in flight after the event: still under capacity, so no queueing on top
     run(s, 5);
     s.triggerEvent({ kind: 'serviceTime', multiplier: 3, durationMs: 10_000 });
     const m = run(s, 5);

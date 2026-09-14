@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Simulation, DT_MS } from './engine';
 import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10000 };
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
 const admitAll: AdmissionController = { name: 'all', shouldAdmit: () => true, onComplete() {}, onTick() {}, currentLimit: () => null };
 const admitNone: AdmissionController = { ...admitAll, name: 'none', shouldAdmit: () => false };
 
@@ -37,7 +37,7 @@ describe('Simulation', () => {
     expect(m.inflight).toBe(0);
   });
 
-  it('thrashes under sustained overload: latency past SLA and goodput collapses', () => {
+  it('queues under sustained overload: latency past SLA and goodput collapses', () => {
     const sim = new Simulation({ backend: BACKEND, load: { kind: 'sustained', baseRps: 600, peakRps: 600 }, controller: admitAll, seed: 1 });
     const m = run(sim, 30);
     expect(m.inflight).toBeGreaterThan(1000);

@@ -22,13 +22,13 @@ export function Lesson3() {
   return (
     <LessonLayout spec={spec} lab={lab}
       title="The trouble with static limits"
-      intro="A concurrency limit protects the backend — but which number? Capacity is not constant: GC pauses, noisy neighbours, slow dependencies and deploys all move it. Press the event button and the backend temporarily loses 70% of its capacity."
+      intro="A concurrency limit protects the backend — but which number? Capacity is not constant: GC pauses, noisy neighbours, slow dependencies and deploys all move it. Press the event button and the backend temporarily drops from 50 worker slots to 8."
       watch={[
-        'Before the drop, the limit tuned for normal capacity (50) delivers ~250 rps while the conservative limit (25) leaves half the capacity idle.',
-        'During the drop, limit 50 is 3× too high: latency blows past the SLA and goodput collapses. Limit 25 survives.',
+        'Before the drop, the limit tuned for normal capacity (50) delivers ~250 rps while the conservative limit (25) leaves half the workers idle.',
+        'During the drop, limit 50 is 6× too high: 42 admitted requests queue behind 8 workers, every one of them waits past the SLA, and goodput collapses. Limit 25 queues 17 deep, stays under the SLA, and keeps ~40 rps flowing.',
         'Use the slider to hunt for a value that is right in both regimes — there isn\'t one. The right limit is a function of current capacity, which is exactly what the next lesson measures.',
       ]}
-      events={[{ label: 'Capacity drop (×0.3, 10 s)', event: CAPACITY_DROP }]}
+      events={[{ label: 'Capacity drop (50 → 8 slots, 10 s)', event: CAPACITY_DROP }]}
     >
       <div className="panel knobs">
         <label>

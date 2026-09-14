@@ -51,7 +51,7 @@ export function Lesson4() {
         'Gradient (Netflix concurrency-limits style): limit ← limit × (tolerance × baseline / latency) + headroom, smoothed. Proportional, smoother, tunable.',
         'Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts and oscillates. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.',
       ]}
-      events={[{ label: 'Capacity drop (×0.3, 10 s)', event: CAPACITY_DROP }]}
+      events={[{ label: 'Capacity drop (50 → 8 slots, 10 s)', event: CAPACITY_DROP }]}
     >
       <div className="panel">
         <div className="presets">

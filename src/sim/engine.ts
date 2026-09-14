@@ -53,26 +53,24 @@ export class Simulation {
       } else rejected++;
     }
 
-    // Beyond capacity, requests share a fixed processing budget and pay a thrashing penalty.
-    const n = this.inflight.length;
-    const over = Math.max(0, n - capacity);
-    const share = n <= capacity ? 1 : capacity / n;
-    const penalty = 1 / (1 + (this.config.backend.overloadPenalty * over) / capacity);
-    const progress = DT_MS * share * penalty;
+    // FIFO worker pool: the oldest `slots` in-flight requests are being served at nominal speed, the rest
+    // wait in arrival order without progressing. In-flight order is arrival order, so index < slots means
+    // "holding a worker".
+    const slots = Math.max(1, Math.round(capacity));
 
     this.nowMs += DT_MS;
     const latencies: number[] = [];
     let good = 0, timedOut = 0;
     const remaining: Inflight[] = [];
-    for (const r of this.inflight) {
-      r.remainingMs -= progress;
+    this.inflight.forEach((r, i) => {
+      if (i < slots) r.remainingMs -= DT_MS;
       const latency = this.nowMs - r.arrivedAt;
       // A client that has waited clientTimeoutMs gives up; its request leaves the backend unfinished.
-      if (r.remainingMs > 0 && latency < this.config.backend.clientTimeoutMs) { remaining.push(r); continue; }
+      if (r.remainingMs > 0 && latency < this.config.backend.clientTimeoutMs) { remaining.push(r); return; }
       latencies.push(latency);
       if (latency <= this.config.backend.slaMs) good++; else timedOut++;
       ctrl.onComplete(latency, this.nowMs);
-    }
+    });
     this.inflight = remaining;
     this.active = this.active.filter((a) => a.endsAt > this.nowMs);
 

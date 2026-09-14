@@ -19,7 +19,7 @@ export function Lesson2() {
       title="RPS limits vs. concurrency limits"
       intro="Both limiters are tuned for the same healthy throughput (200 rps ≈ 40 in-flight × 200 ms, by Little's law). Offered load is 300 rps. Press the event button: a downstream dependency slows down and every request takes 3× longer."
       watch={[
-        'The RPS limiter keeps admitting 200 rps because rate is all it can see. Each request now holds a slot 3× longer, so in-flight balloons past capacity, the backend thrashes, latency crosses the SLA and goodput collapses — and it takes a long time to drain after the slowdown ends.',
+        'The RPS limiter keeps admitting 200 rps because rate is all it can see. Each request now holds a worker 3× longer, so 200 rps needs 120 workers but there are 50: the queue grows without bound, latency crosses the SLA and goodput collapses — and it takes a long time to drain after the slowdown ends.',
         'The concurrency limiter caps in-flight at 40. Admitted rate drops automatically to ~67 rps, latency stays ~600 ms (under SLA), goodput stays positive, and recovery is instant.',
         'Concurrency is the resource you are actually protecting; RPS is only a proxy that assumes latency never changes.',
       ]}

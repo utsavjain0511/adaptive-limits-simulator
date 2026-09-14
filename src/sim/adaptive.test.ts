@@ -2,11 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS } from './adaptive';
 import { ConcurrencyLimiter } from './controllers';
 import { Simulation, DT_MS } from './engine';
+import { CAPACITY_DROP } from '../lessons/defaults';
 import type { AdmissionController, BackendConfig, TickMetrics } from './types';
 
-const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10000 };
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
 const load = { kind: 'sustained' as const, baseRps: 300, peakRps: 300 };
-const DROP = { kind: 'capacity' as const, multiplier: 0.3, durationMs: 10_000 };
+const DROP = CAPACITY_DROP; // the lesson's own event, so the scenario follows the lesson if it is retuned
 function run(sim: Simulation, seconds: number): TickMetrics {
   let m!: TickMetrics;
   for (let i = 0; i < (seconds * 1000) / DT_MS; i++) m = sim.step();

@@ -59,6 +59,7 @@ export function Lesson4() {
         <><b>AIMD</b> — additive increase, multiplicative decrease, the same idea as TCP congestion control. Each window: if the average latency is above <code>threshold × baseline</code>, <code>limit = limit × backoff</code>; otherwise <code>limit = limit + step</code>. It always probes above capacity until latency says stop, so it draws a saw-tooth. Simple and robust.</>,
         <><b>Gradient</b> — the crux of Netflix's algorithm is the latency gradient, <code>gradient = clamp(tolerance × baselineLatency / windowAvgLatency, 0.5, 1)</code>, and the update step:
           <pre>{'target = oldThreshold × gradient + headroom\nconcurrencyThreshold = clamp(oldThreshold × (1 − smoothing) + target × smoothing, minLimit, maxLimit)'}</pre>
+          Gradient adjusts the limit gradually based on how much requests slow down. AIMD raises it by a fixed amount, then cuts it by a fixed percentage when requests slow down, creating an up-and-down pattern.
         </>,
         <><b>Presets</b> — move the sliders to feel the stability-vs-responsiveness trade-off.
           <ul>

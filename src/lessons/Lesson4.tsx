@@ -35,6 +35,8 @@ export function Lesson4() {
     lab.setController(1, make(nextAlgo, nextAimd, nextGrad));
   };
   const preset = (p: PresetName) => apply(algo, AIMD_PRESETS[p], GRADIENT_PRESETS[p]);
+  // A preset is "selected" while the active algorithm's config still equals it; moving any slider deselects.
+  const activePreset = PRESETS.find((p) => (algo === 'aimd' ? aimd === AIMD_PRESETS[p] : grad === GRADIENT_PRESETS[p]));
   const knob = (label: string, value: number, min: number, max: number, step: number, set: (v: number) => void) => (
     <label key={label}>
       {label}: {value}
@@ -58,7 +60,9 @@ export function Lesson4() {
           <label><input type="radio" checked={algo === 'aimd'} onChange={() => apply('aimd', aimd, grad)} /> AIMD</label>
           <label><input type="radio" checked={algo === 'gradient'} onChange={() => apply('gradient', aimd, grad)} /> Gradient</label>
           <span style={{ marginLeft: 12 }}>presets:</span>
-          {PRESETS.map((p) => <button key={p} onClick={() => preset(p)}>{p}</button>)}
+          {PRESETS.map((p) => (
+            <button key={p} className={p === activePreset ? 'active' : ''} aria-pressed={p === activePreset} onClick={() => preset(p)}>{p}</button>
+          ))}
         </div>
         <div className="knobs">
           {algo === 'aimd' ? (

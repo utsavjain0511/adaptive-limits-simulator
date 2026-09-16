@@ -7,17 +7,18 @@ export type PresetName = 'stable' | 'aggressive' | 'sluggish';
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// Baseline = min of recent window averages of *processing* time (time holding a worker, excluding queue
-// wait). Queueing therefore never leaks into the baseline, however long it lasts; the bounded memory only
-// lets the baseline follow a change in the backend's own speed after `windows` windows.
+// Baseline = mean *processing* time (time holding a worker, excluding queue wait) over the last few windows.
+// Queueing never leaks into it, however long it lasts, and it follows the backend's own speed within a
+// window or two — so a slower dependency raises the baseline with the latency and does not read as
+// congestion. The short memory only smooths per-window sampling noise.
 class BaselineTracker {
   private hist: number[] = [];
-  constructor(private readonly windows = 30) {}
+  constructor(private readonly windows = 3) {}
   push(v: number): void {
     this.hist.push(v);
     if (this.hist.length > this.windows) this.hist.shift();
   }
-  current(): number | null { return this.hist.length ? Math.min(...this.hist) : null; }
+  current(): number | null { return this.hist.length ? this.hist.reduce((a, b) => a + b, 0) / this.hist.length : null; }
 }
 
 abstract class WindowedLimiter implements AdmissionController {

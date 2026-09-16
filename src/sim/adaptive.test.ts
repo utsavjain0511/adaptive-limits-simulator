@@ -22,9 +22,10 @@ const STABLE = [
 
 // A window with one admission attempt and 20 completions at one latency. `inflight` is the count the engine
 // reports at the attempt, i.e. before that request is added — so the limiter sees `inflight + 1` in flight.
-function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number): void {
+// `serviceMs` is the time each completion spent holding a worker; the difference from `latencyMs` is queue wait.
+function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number, serviceMs = 200): void {
   c.shouldAdmit(inflight, fromMs);
-  for (let i = 0; i < 20; i++) c.onComplete(latencyMs, fromMs + i * 5);
+  for (let i = 0; i < 20; i++) c.onComplete(latencyMs, fromMs + i * 5, serviceMs);
   c.onTick(fromMs + 100, 20);
 }
 
@@ -82,7 +83,7 @@ describe('utilisation guard: the limit only grows when at least half of it was i
     c.shouldAdmit(1, 0);
     c.shouldAdmit(8, 10); // a single attempt at 9 in flight
     c.shouldAdmit(1, 20);
-    for (let i = 0; i < 20; i++) c.onComplete(200, i * 5);
+    for (let i = 0; i < 20; i++) c.onComplete(200, i * 5, 200);
     c.onTick(100, 20);
     expect(c.currentLimit()).toBe(10); // mean (2 + 9 + 2) / 3 ≈ 4.3 < 5
   });
@@ -98,6 +99,55 @@ describe('utilisation guard: the limit only grows when at least half of it was i
       }
       const saturated = mk(make()); // 300 rps > capacity: in flight sits at the limit, so it may grow
       expect(run(saturated, 10).limit).toBeGreaterThan(AIMD_PRESETS.stable.initialLimit);
+    });
+  }
+});
+
+describe('processing-time baseline: congestion is latency in excess of the time a request spends being served', () => {
+  it('AIMD keeps backing off under sustained queueing instead of absorbing the queue wait into its baseline', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 50, windowMs: 100 });
+    // 40 windows in which every request waited 600 ms for a worker and was then served in 200 ms.
+    for (let w = 0; w < 40; w++) window(c, 49, 800, w * 100, 200);
+    expect(c.currentLimit()).toBe(AIMD_PRESETS.stable.minLimit);
+  });
+
+  it('Gradient shrinks toward its floor under sustained queueing for the same reason', () => {
+    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 50, windowMs: 100 });
+    for (let w = 0; w < 40; w++) window(c, 49, 800, w * 100, 200);
+    expect(c.currentLimit()).toBeLessThan(10); // fixed point of 0.5 × limit + headroom
+  });
+
+  it('a window in which every completion was abandoned keeps the previous baseline and still backs off', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 9, 200, 0, 200);
+    expect(c.currentLimit()).toBe(12);
+    c.shouldAdmit(11, 100);
+    for (let i = 0; i < 20; i++) c.onComplete(10_000, 100 + i * 5, null); // clients gave up; no service time known
+    c.onTick(200, 20);
+    expect(c.currentLimit()).toBe(Math.floor(12 * AIMD_PRESETS.stable.backoffRatio));
+    window(c, 8, 200, 200, 200); // healthy again: judged against the 200 ms baseline, not the 10 s window
+    expect(c.currentLimit()).toBe(Math.floor(12 * AIMD_PRESETS.stable.backoffRatio) + AIMD_PRESETS.stable.increaseStep);
+  });
+
+  it('holds its limit until it has seen at least one request served to completion', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    c.shouldAdmit(9, 0);
+    for (let i = 0; i < 20; i++) c.onComplete(10_000, i * 5, null);
+    c.onTick(100, 20);
+    expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
+  });
+
+  for (const [name, make] of STABLE) {
+    it(`${name} Stable stays near capacity under three minutes of saturating load (no baseline drift)`, () => {
+      // 300 rps on 50 workers: in flight sits at the limit, so growth is allowed; only the baseline can
+      // stop it. With a latency baseline the queue wait leaked into it and the limit drifted to 100–200.
+      const sim = mk(make());
+      for (let minute = 1; minute <= 3; minute++) {
+        const m = run(sim, 60);
+        expect(m.limit!).toBeGreaterThan(45);
+        expect(m.limit!).toBeLessThan(80);
+        expect(m.p99LatencyMs).toBeLessThan(500);
+      }
     });
   }
 });

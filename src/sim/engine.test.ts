@@ -61,6 +61,26 @@ describe('Simulation', () => {
     expect(m.availability).toBeLessThan(0.05);
   });
 
+  it('reports the time a request spent holding a worker separately from its latency, and null once abandoned', () => {
+    const seen: { latencyMs: number; serviceMs: number | null }[] = [];
+    const recording: AdmissionController = { ...admitAll, onComplete: (latencyMs, _now, serviceMs) => { seen.push({ latencyMs, serviceMs }); } };
+    // One worker and 10 rps: everything queues, but each request is still served in 140–260 ms (+ one tick).
+    const backend = { ...BACKEND, capacity: 1, clientTimeoutMs: 3000 };
+    const sim = new Simulation({ backend, load: { kind: 'sustained', baseRps: 10, peakRps: 10 }, controller: recording, seed: 1 });
+    run(sim, 10);
+    const served = seen.filter((s) => s.serviceMs != null);
+    expect(served.length).toBeGreaterThan(20);
+    for (const s of served) {
+      expect(s.serviceMs!).toBeGreaterThanOrEqual(140);
+      expect(s.serviceMs!).toBeLessThanOrEqual(280);
+      expect(s.latencyMs).toBeGreaterThanOrEqual(s.serviceMs!);
+    }
+    expect(served.some((s) => s.latencyMs - s.serviceMs! > 500)).toBe(true); // queue wait shows up in latency only
+    const abandoned = seen.filter((s) => s.serviceMs == null);
+    expect(abandoned.length).toBeGreaterThan(0);
+    for (const s of abandoned) expect(s.latencyMs).toBe(backend.clientTimeoutMs);
+  });
+
   it('reports abandoned requests to the controller as completions at the timeout latency', () => {
     const seen: number[] = [];
     const recording: AdmissionController = { ...admitAll, onComplete: (latencyMs) => { seen.push(latencyMs); } };

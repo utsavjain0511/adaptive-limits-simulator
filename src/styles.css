@@ -16,6 +16,16 @@ button { cursor: pointer; }
 /* shell */
 .shell { display: grid; grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--notes-w); grid-template-areas: "side main notes"; height: 100vh; }
 .shell.collapsed { --sidebar-w: 56px; }
+.shell.intro { grid-template-columns: var(--sidebar-w) minmax(0, 1fr); grid-template-areas: "side main"; }
+
+/* introduction */
+.introduction { grid-area: main; overflow: auto; padding: 56px 32px; max-width: 72ch; }
+.introduction h1 { font-size: 28px; letter-spacing: -0.01em; margin: 0 0 20px; }
+.introduction p { font-size: 16px; line-height: 1.6; margin: 0 0 24px; }
+.introduction a { color: var(--ink); }
+.introduction .outline { margin: 0 0 28px; padding-left: 22px; color: var(--muted); }
+.introduction .outline li + li { margin-top: 6px; }
+.introduction .primary { border: 1px solid var(--ink); background: var(--ink); color: #fff; padding: 8px 16px; border-radius: 4px; }
 
 /* sidebar */
 .sidebar { grid-area: side; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 20px 0 12px; min-width: 0; }
@@ -77,6 +87,8 @@ button { cursor: pointer; }
 /* single column below ~1000px */
 @media (max-width: 1000px) {
   .shell, .shell.collapsed { grid-template-columns: minmax(0, 1fr); grid-template-areas: "side" "main" "notes"; height: auto; }
+  .shell.intro { grid-template-areas: "side" "main"; }
+  .introduction { padding: 28px 16px; }
   .sidebar { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 12px 0; border-right: 0; border-bottom: 1px solid var(--line); }
   .brand, .collapsed .brand { flex: 1 0 100%; padding: 0 0 6px; text-align: left; }
   .lessons { display: flex; flex: 1 1 100%; overflow-x: auto; }

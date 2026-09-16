@@ -137,6 +137,31 @@ describe('processing-time baseline: congestion is latency in excess of the time 
     expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
   });
 
+  it('follows a slower backend within a few windows, so a slowdown with no queueing is not congestion', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    for (let w = 0; w < 5; w++) window(c, 9, 200, w * 100, 200);
+    const before = c.currentLimit()!;
+    // The dependency gets 3× slower: latency and processing time triple together, nothing waits for a worker.
+    for (let w = 5; w < 10; w++) window(c, 9, 600, w * 100, 600);
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before); // never backed off
+    // Real queueing on top of the slow backend still reads as congestion.
+    window(c, 9, 1800, 1000, 600);
+    expect(c.currentLimit()).toBeLessThan(before);
+  });
+
+  for (const [name, make] of STABLE) {
+    it(`${name} Stable does not shrink through a downstream slowdown that leaves workers to spare`, () => {
+      // 60 rps at 3× service time needs ~36 of the 50 workers: latency triples but nobody queues, so the
+      // limit must not collapse. (100 rps would need 60 workers and genuinely queue.)
+      const sim = new Simulation({ backend: BACKEND, load: { kind: 'sustained', baseRps: 60, peakRps: 60 }, controller: make(), seed: 1 });
+      const before = run(sim, 10).limit!;
+      sim.triggerEvent({ kind: 'serviceTime', multiplier: 3, durationMs: 10_000 });
+      let lowest = Infinity;
+      for (let s = 0; s < 10; s++) lowest = Math.min(lowest, run(sim, 1).limit!);
+      expect(lowest).toBeGreaterThanOrEqual(before * 0.8); // at most one spurious backoff step while the baseline catches up
+    });
+  }
+
   for (const [name, make] of STABLE) {
     it(`${name} Stable stays near capacity under three minutes of saturating load (no baseline drift)`, () => {
       // 300 rps on 50 workers: in flight sits at the limit, so growth is allowed; only the baseline can

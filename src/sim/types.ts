@@ -25,6 +25,8 @@ export interface TickMetrics {
   offeredRps: number; admittedRps: number; rejectedRps: number;
   inflight: number; limit: number | null; capacity: number;
   meanLatencyMs: number; p99LatencyMs: number;
-  meanWaitMs: number; meanServiceMs: number; // latency split into time queued and time holding a worker (served requests only)
+  // meanServiceMs is the mean time holding a worker over served requests; meanWaitMs is mean latency over all
+  // completions (abandoned ones included) minus that, so the two always add up to meanLatencyMs.
+  meanWaitMs: number; meanServiceMs: number;
   goodputRps: number; timedOutRps: number; availability: number; // 0..1
 }

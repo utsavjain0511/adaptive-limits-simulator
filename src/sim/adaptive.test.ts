@@ -20,12 +20,12 @@ const STABLE = [
   ['Gradient', () => new GradientLimiter(GRADIENT_PRESETS.stable)],
 ] as const;
 
-// A window with one admission attempt and 20 completions at one latency. `inflight` is the count the engine
+// A window with one admission attempt and `n` completions at one latency. `inflight` is the count the engine
 // reports at the attempt, i.e. before that request is added — so the limiter sees `inflight + 1` in flight.
 // `serviceMs` is the time each completion spent holding a worker; the difference from `latencyMs` is queue wait.
-function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number, serviceMs = 200): void {
+function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number, serviceMs = 200, n = 20): void {
   c.shouldAdmit(inflight, fromMs);
-  for (let i = 0; i < 20; i++) c.onComplete(latencyMs, fromMs + i * 5, serviceMs);
+  for (let i = 0; i < n; i++) c.onComplete(latencyMs, fromMs + i * 5, serviceMs);
   c.onTick(fromMs + 100, 20);
 }
 
@@ -136,6 +136,58 @@ describe('processing-time baseline: congestion is latency in excess of the time 
     c.onTick(100, 20);
     expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
   });
+
+  it('weights the baseline by completions, so a one-request window at the fast end of the jitter does not drag it down', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 9, 200, 0, 200);              // 20 served at 200 ms
+    window(c, 9, 140, 100, 140, 1);         // one lucky ×0.7 request
+    const before = c.currentLimit()!;
+    // A slightly slow window with nobody queueing. The judged window is part of the baseline, so:
+    // weighted (20×200 + 1×140 + 20×270) / 41 ≈ 233 → threshold ≈ 302 > 270: no backoff;
+    // unweighted (200 + 140 + 270) / 3 ≈ 203 → threshold ≈ 264 < 270: a spurious backoff.
+    window(c, 9, 270, 200, 270);
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before);
+  });
+
+  it('does not judge a window with fewer than five completions', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 9, 200, 0, 200);
+    const before = c.currentLimit()!;
+    window(c, 9, 2000, 100, 200, 3); // three completions with 1.8 s of wait: too few to act on
+    expect(c.currentLimit()).toBe(before);
+    window(c, 9, 2000, 200, 200, 5); // five is enough
+    expect(c.currentLimit()).toBeLessThan(before);
+  });
+
+  it('follows a slower backend within a few windows, so a slowdown with no queueing is not congestion', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    for (let w = 0; w < 5; w++) window(c, 9, 200, w * 100, 200);
+    const before = c.currentLimit()!;
+    // The dependency gets 3× slower: latency and processing time triple together, nothing waits for a worker.
+    // The first slow window is judged against a baseline still two-thirds fast, so one backoff step is
+    // allowed; after that the baseline has caught up and the limit must be growing again.
+    let lowest = Infinity;
+    for (let w = 5; w < 10; w++) { window(c, 9, 600, w * 100, 600); lowest = Math.min(lowest, c.currentLimit()!); }
+    expect(lowest).toBeGreaterThanOrEqual(Math.floor(before * AIMD_PRESETS.stable.backoffRatio));
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before);
+    // Real queueing on top of the slow backend still reads as congestion.
+    const recovered = c.currentLimit()!;
+    window(c, 9, 1800, 1000, 600);
+    expect(c.currentLimit()).toBeLessThan(recovered);
+  });
+
+  for (const [name, make] of STABLE) {
+    it(`${name} Stable does not shrink through a downstream slowdown that leaves workers to spare`, () => {
+      // 60 rps at 3× service time needs ~36 of the 50 workers: latency triples but nobody queues, so the
+      // limit must not collapse. (100 rps would need 60 workers and genuinely queue.)
+      const sim = new Simulation({ backend: BACKEND, load: { kind: 'sustained', baseRps: 60, peakRps: 60 }, controller: make(), seed: 1 });
+      const before = run(sim, 10).limit!;
+      sim.triggerEvent({ kind: 'serviceTime', multiplier: 3, durationMs: 10_000 });
+      let lowest = Infinity;
+      for (let s = 0; s < 10; s++) lowest = Math.min(lowest, run(sim, 1).limit!);
+      expect(lowest).toBeGreaterThanOrEqual(before * 0.8); // at most one spurious backoff step while the baseline catches up
+    });
+  }
 
   for (const [name, make] of STABLE) {
     it(`${name} Stable stays near capacity under three minutes of saturating load (no baseline drift)`, () => {

@@ -98,6 +98,11 @@ describe('latency', () => {
     expect(queued.meanWaitMs).toBeGreaterThan(300);
     expect(queued.meanServiceMs).toBeLessThan(230);
     expect(queued.meanWaitMs + queued.meanServiceMs).toBeCloseTo(queued.meanLatencyMs, 6);
+    // Nothing completes on a stalled backend: mean latency falls back to the oldest age, and it is all wait.
+    const stalled = run(sim(10, admitAll, { ...BACKEND, capacity: 1, serviceTimeMs: 100_000 }), 2);
+    expect(stalled.meanServiceMs).toBe(0);
+    expect(stalled.meanWaitMs).toBe(stalled.meanLatencyMs);
+    expect(stalled.meanWaitMs).toBeGreaterThan(1500);
   });
 
   it('when nothing completes, mean and p99 report the age of the oldest in-flight request instead of 0', () => {

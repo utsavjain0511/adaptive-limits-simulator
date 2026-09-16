@@ -1,5 +1,6 @@
 import { mulberry32, poisson, hashUnit } from './rng';
 import { offeredRps } from './load';
+import { mean } from './stats';
 import type { AdmissionController, BackendConfig, LoadPattern, SimEvent, TickMetrics } from './types';
 
 export const DT_MS = 20;
@@ -8,8 +9,9 @@ const LATENCY_WINDOW_TICKS = 3000 / DT_MS;   // 3s window for percentiles
 
 export interface SimConfig { backend: BackendConfig; load: LoadPattern; controller: AdmissionController; seed?: number; }
 
-interface Inflight { id: number; arrivedAt: number; servedAt?: number; remainingMs?: number; } // servedAt/remainingMs are set when the request first holds a worker
-interface TickLog { offered: number; admitted: number; rejected: number; good: number; timedOut: number; latencies: number[]; waits: number[]; services: number[]; }
+// heldMs/remainingMs are set when the request first holds a worker; heldMs counts only ticks spent holding one.
+interface Inflight { id: number; arrivedAt: number; heldMs?: number; remainingMs?: number; }
+interface TickLog { offered: number; admitted: number; rejected: number; good: number; timedOut: number; latencies: number[]; serviceSum: number; serviceN: number; }
 
 export class Simulation {
   private nowMs = 0;
@@ -60,16 +62,14 @@ export class Simulation {
     const serving = Math.min(capacity, this.inflight.length);
     for (let i = 0; i < serving; i++) {
       const r = this.inflight[i];
-      if (r.remainingMs == null) {
-        r.servedAt = this.nowMs;
-        r.remainingMs = serviceTimeMs * (0.7 + 0.6 * hashUnit(r.id));
-      }
+      r.remainingMs ??= serviceTimeMs * (0.7 + 0.6 * hashUnit(r.id));
       r.remainingMs -= DT_MS;
+      r.heldMs = (r.heldMs ?? 0) + DT_MS;
     }
 
     this.nowMs += DT_MS;
-    const latencies: number[] = [], waits: number[] = [], services: number[] = [];
-    let good = 0, timedOut = 0;
+    const latencies: number[] = [];
+    let good = 0, timedOut = 0, serviceSum = 0, serviceN = 0;
     const remaining: Inflight[] = [];
     for (const r of this.inflight) {
       const finished = r.remainingMs != null && r.remainingMs <= 0;
@@ -78,15 +78,16 @@ export class Simulation {
       if (!finished && latency < this.config.backend.clientTimeoutMs) { remaining.push(r); continue; }
       latencies.push(latency);
       if (latency <= this.config.backend.slaMs) good++; else timedOut++;
-      // Only a request served to completion has a known service time; queue wait is the rest of its latency.
-      const serviceMs = finished ? this.nowMs - r.servedAt! : null;
-      if (serviceMs != null) { services.push(serviceMs); waits.push(latency - serviceMs); }
+      // Only a request served to completion has a known service time: the ticks it held a worker, which
+      // excludes both queue wait and any pause while capacity was below its position.
+      const serviceMs = finished ? r.heldMs! : null;
+      if (serviceMs != null) { serviceSum += serviceMs; serviceN++; }
       ctrl.onComplete(latency, this.nowMs, serviceMs);
     }
     this.inflight = remaining;
     this.active = this.active.filter((a) => a.endsAt > this.nowMs);
 
-    this.log.push({ offered: arrivals, admitted, rejected, good, timedOut, latencies, waits, services });
+    this.log.push({ offered: arrivals, admitted, rejected, good, timedOut, latencies, serviceSum, serviceN });
     if (this.log.length > LATENCY_WINDOW_TICKS) this.log.shift();
     return this.metrics(capacity, ctrl.currentLimit());
   }
@@ -95,7 +96,6 @@ export class Simulation {
     const recent = this.log.slice(-RATE_WINDOW_TICKS);
     const secs = (recent.length * DT_MS) / 1000;
     const sum = (k: 'offered' | 'admitted' | 'rejected' | 'good' | 'timedOut') => recent.reduce((a, t) => a + t[k], 0);
-    const meanOf = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
     const offered = sum('offered'), good = sum('good');
     // Availability = good / (good + failed). Pending requests are not failures, but an in-flight request
     // already older than the SLA can no longer succeed, so it counts as failed before it completes.
@@ -104,15 +104,19 @@ export class Simulation {
     const lat = this.log.flatMap((t) => t.latencies).sort((a, b) => a - b);
     // A stalled backend completes nothing; the oldest in-flight age is a lower bound on its latency.
     const oldestAge = this.inflight.length ? this.nowMs - this.inflight[0].arrivedAt : 0;
-    const mean = lat.length ? lat.reduce((a, b) => a + b, 0) / lat.length : oldestAge;
+    const meanLatency = lat.length ? mean(lat) : oldestAge;
     const completedP99 = lat.length ? lat[Math.min(lat.length - 1, Math.floor(lat.length * 0.99))] : 0;
     const p99 = Math.max(completedP99, oldestAge);
+    // Service time is known only for served requests; wait is defined as the rest of mean latency, so the
+    // split always adds up and inherits the stall fallback (a stalled backend is all wait).
+    const serviceN = this.log.reduce((a, t) => a + t.serviceN, 0);
+    const meanService = serviceN ? this.log.reduce((a, t) => a + t.serviceSum, 0) / serviceN : 0;
     return {
       tMs: this.nowMs,
       offeredRps: offered / secs, admittedRps: sum('admitted') / secs, rejectedRps: sum('rejected') / secs,
       inflight: this.inflight.length, limit, capacity,
-      meanLatencyMs: mean, p99LatencyMs: p99,
-      meanWaitMs: meanOf(this.log.flatMap((t) => t.waits)), meanServiceMs: meanOf(this.log.flatMap((t) => t.services)),
+      meanLatencyMs: meanLatency, p99LatencyMs: p99,
+      meanWaitMs: Math.max(0, meanLatency - meanService), meanServiceMs: meanService,
       goodputRps: good / secs, timedOutRps: sum('timedOut') / secs,
       availability: good + failed > 0 ? good / (good + failed) : 1,
     };

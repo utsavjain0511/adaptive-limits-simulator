@@ -1,3 +1,4 @@
+import { mean } from './stats';
 import type { AdmissionController } from './types';
 
 export interface AdaptiveBounds { initialLimit: number; minLimit: number; maxLimit: number; windowMs: number; }
@@ -7,29 +8,26 @@ export type PresetName = 'stable' | 'aggressive' | 'sluggish';
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// Baseline = mean *processing* time (time holding a worker, excluding queue wait) over the last few windows.
-// Queueing never leaks into it, however long it lasts, and it follows the backend's own speed within a
-// window or two — so a slower dependency raises the baseline with the latency and does not read as
-// congestion. The short memory only smooths per-window sampling noise.
-class BaselineTracker {
-  private hist: number[] = [];
-  constructor(private readonly windows = 3) {}
-  push(v: number): void {
-    this.hist.push(v);
-    if (this.hist.length > this.windows) this.hist.shift();
-  }
-  current(): number | null { return this.hist.length ? this.hist.reduce((a, b) => a + b, 0) / this.hist.length : null; }
-}
+// Baseline = mean *processing* time (time holding a worker, excluding queue wait) over the last few windows,
+// weighted by how many requests each window served. Queueing never leaks into it, however long it lasts, and
+// it follows the backend's own speed within a window or two — so a slower dependency raises the baseline with
+// the latency and does not read as congestion. The short memory only smooths per-window sampling noise.
+const BASELINE_WINDOWS = 3;
+// A window with only a handful of completions is too noisy to judge: two requests at the top of the ±30%
+// jitter band look like congestion, and under light load a spurious backoff is permanent because the
+// utilisation guard blocks regrowth.
+const MIN_SAMPLES = 5;
 
 abstract class WindowedLimiter implements AdmissionController {
   abstract readonly name: string;
   protected limit: number;
   private latencies: number[] = [];
-  private services: number[] = [];
+  private serviceSum = 0;
+  private serviceN = 0;
+  private serviceWindows: { sum: number; n: number }[] = [];
   private inflightSum = 0;
   private inflightSamples = 0;
   private windowEndsAt: number;
-  private readonly baseline = new BaselineTracker();
 
   constructor(private readonly bounds: AdaptiveBounds) {
     this.limit = bounds.initialLimit;
@@ -44,7 +42,7 @@ abstract class WindowedLimiter implements AdmissionController {
   }
   onComplete(latencyMs: number, _nowMs: number, serviceMs: number | null): void {
     this.latencies.push(latencyMs);
-    if (serviceMs != null) this.services.push(serviceMs);
+    if (serviceMs != null) { this.serviceSum += serviceMs; this.serviceN++; }
   }
   onTick(nowMs: number): void {
     if (nowMs < this.windowEndsAt) return;
@@ -57,16 +55,20 @@ abstract class WindowedLimiter implements AdmissionController {
     const utilised = meanInflight * 2 >= this.limit;
     this.inflightSum = 0;
     this.inflightSamples = 0;
-    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-    const latencies = this.latencies, services = this.services;
+    const latencies = this.latencies;
     this.latencies = [];
-    this.services = [];
-    if (latencies.length === 0) return;
-    // A window whose completions were all abandoned has no service samples; it is judged against the last
+    if (this.serviceN > 0) {
+      this.serviceWindows.push({ sum: this.serviceSum, n: this.serviceN });
+      if (this.serviceWindows.length > BASELINE_WINDOWS) this.serviceWindows.shift();
+    }
+    this.serviceSum = 0;
+    this.serviceN = 0;
+    if (latencies.length < MIN_SAMPLES) return;
+    // A window whose completions were all abandoned adds no service samples and is judged against the last
     // known baseline. Until one request has been served to completion there is nothing to judge against.
-    if (services.length > 0) this.baseline.push(mean(services));
-    const base = this.baseline.current();
-    if (base == null) return;
+    const baseN = this.serviceWindows.reduce((a, w) => a + w.n, 0);
+    if (baseN === 0) return;
+    const base = this.serviceWindows.reduce((a, w) => a + w.sum, 0) / baseN;
     const next = clamp(this.update(mean(latencies), base), this.bounds.minLimit, this.bounds.maxLimit);
     if (next < this.limit || utilised) this.limit = next;
   }

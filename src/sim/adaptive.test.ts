@@ -20,12 +20,12 @@ const STABLE = [
   ['Gradient', () => new GradientLimiter(GRADIENT_PRESETS.stable)],
 ] as const;
 
-// A window with one admission attempt and 20 completions at one latency. `inflight` is the count the engine
+// A window with one admission attempt and `n` completions at one latency. `inflight` is the count the engine
 // reports at the attempt, i.e. before that request is added — so the limiter sees `inflight + 1` in flight.
 // `serviceMs` is the time each completion spent holding a worker; the difference from `latencyMs` is queue wait.
-function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number, serviceMs = 200): void {
+function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number, serviceMs = 200, n = 20): void {
   c.shouldAdmit(inflight, fromMs);
-  for (let i = 0; i < 20; i++) c.onComplete(latencyMs, fromMs + i * 5, serviceMs);
+  for (let i = 0; i < n; i++) c.onComplete(latencyMs, fromMs + i * 5, serviceMs);
   c.onTick(fromMs + 100, 20);
 }
 
@@ -135,6 +135,25 @@ describe('processing-time baseline: congestion is latency in excess of the time 
     for (let i = 0; i < 20; i++) c.onComplete(10_000, i * 5, null);
     c.onTick(100, 20);
     expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
+  });
+
+  it('weights the baseline by completions, so a one-request window at the fast end of the jitter does not drag it down', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 9, 200, 0, 200);              // 20 served at 200 ms
+    window(c, 9, 140, 100, 140, 1);         // one lucky ×0.7 request; unweighted the baseline would read 170
+    const before = c.currentLimit()!;
+    window(c, 9, 250, 200, 250);            // ordinary window, slightly slow, nobody queueing:
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before); // 250 < 1.3 × ~197, so no backoff (1.3 × 170 = 221 would)
+  });
+
+  it('does not judge a window with fewer than five completions', () => {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 9, 200, 0, 200);
+    const before = c.currentLimit()!;
+    window(c, 9, 2000, 100, 200, 3); // three completions with 1.8 s of wait: too few to act on
+    expect(c.currentLimit()).toBe(before);
+    window(c, 9, 2000, 200, 200, 5); // five is enough
+    expect(c.currentLimit()).toBeLessThan(before);
   });
 
   it('follows a slower backend within a few windows, so a slowdown with no queueing is not congestion', () => {

@@ -123,6 +123,18 @@ describe('Simulation', () => {
     expect(after.goodputRps).toBeGreaterThan(75);
   });
 
+  it('reports service time as ticks holding a worker, so a request paused by a capacity drop does not inflate it', () => {
+    const seen: number[] = [];
+    const recording: AdmissionController = { ...admitAll, onComplete: (_l, _now, serviceMs) => { if (serviceMs != null) seen.push(serviceMs); } };
+    const sim = new Simulation({ backend: BACKEND, load: { kind: 'sustained', baseRps: 100, peakRps: 100 }, controller: recording, seed: 1 });
+    run(sim, 2);
+    sim.triggerEvent({ kind: 'capacity', multiplier: 0, durationMs: 1000 }); // every request in service pauses for 1 s
+    seen.length = 0;
+    run(sim, 3);
+    expect(seen.length).toBeGreaterThan(100);
+    for (const s of seen) expect(s).toBeLessThanOrEqual(BACKEND.serviceTimeMs * 1.3 + DT_MS); // wall clock would be ≥ 1 s
+  });
+
   it('binds service time when a request starts being served, not when it was admitted', () => {
     // One worker, a permanent backlog, and clients that never give up: throughput is 1 / service time.
     const backend = { ...BACKEND, capacity: 1, clientTimeoutMs: 1_000_000 };

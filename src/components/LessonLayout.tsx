@@ -4,7 +4,7 @@ import { Dashboard } from './Dashboard';
 import { FlowCanvas } from './FlowCanvas';
 import type { Lab, LabSpec } from '../app/useLab';
 
-interface Props { title: string; intro: string; watch: string[]; spec: LabSpec; lab: Lab; events?: EventButton[]; children?: ReactNode; }
+interface Props { title: string; intro: ReactNode; watch: ReactNode[]; spec: LabSpec; lab: Lab; events?: EventButton[]; children?: ReactNode; }
 
 export function LessonLayout({ title, intro, watch, spec, lab, events = [], children }: Props) {
   const runs = spec.runs.map((r, i) => ({ label: r.label, color: r.color, history: lab.histories[i] }));
@@ -24,9 +24,9 @@ export function LessonLayout({ title, intro, watch, spec, lab, events = [], chil
       </section>
       <aside className="notes">
         <h2>{title}</h2>
-        <p className="intro">{intro}</p>
+        <div className="intro">{intro}</div>
         <h3>What to watch</h3>
-        <ul>{watch.map((w) => <li key={w}>{w}</li>)}</ul>
+        <ul>{watch.map((w, i) => <li key={i}>{w}</li>)}</ul>
         {children && <><h3>Try it</h3>{children}</>}
       </aside>
     </>

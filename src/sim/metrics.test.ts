@@ -89,6 +89,17 @@ describe('latency', () => {
     expect(m.meanLatencyMs).toBeLessThan(750);
   });
 
+  it('splits mean latency into queue wait and service time', () => {
+    const idle = run(sim(100), 10); // under capacity: no queue
+    expect(idle.meanWaitMs).toBeLessThan(15);
+    expect(idle.meanServiceMs).toBeGreaterThan(190);
+    expect(idle.meanServiceMs).toBeLessThan(230);
+    const queued = run(sim(10, admitAll, { ...BACKEND, capacity: 1 }), 10); // one worker: everything waits
+    expect(queued.meanWaitMs).toBeGreaterThan(300);
+    expect(queued.meanServiceMs).toBeLessThan(230);
+    expect(queued.meanWaitMs + queued.meanServiceMs).toBeCloseTo(queued.meanLatencyMs, 6);
+  });
+
   it('when nothing completes, mean and p99 report the age of the oldest in-flight request instead of 0', () => {
     // A single slot with a 100 s service time: requests pile up and none finish within the 3 s window.
     const stalled: BackendConfig = { ...BACKEND, capacity: 1, serviceTimeMs: 100_000 };

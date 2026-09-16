@@ -7,22 +7,24 @@ export type PresetName = 'stable' | 'aggressive' | 'sluggish';
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// "No-load" latency baseline = min of recent window averages: bounded memory, so a long
-// overload cannot drag the baseline up and hide congestion.
+// Baseline = min of recent window averages of *processing* time (time holding a worker, excluding queue
+// wait). Queueing therefore never leaks into the baseline, however long it lasts; the bounded memory only
+// lets the baseline follow a change in the backend's own speed after `windows` windows.
 class BaselineTracker {
   private hist: number[] = [];
   constructor(private readonly windows = 30) {}
-  push(v: number): number {
+  push(v: number): void {
     this.hist.push(v);
     if (this.hist.length > this.windows) this.hist.shift();
-    return Math.min(...this.hist);
   }
+  current(): number | null { return this.hist.length ? Math.min(...this.hist) : null; }
 }
 
 abstract class WindowedLimiter implements AdmissionController {
   abstract readonly name: string;
   protected limit: number;
-  private samples: number[] = [];
+  private latencies: number[] = [];
+  private services: number[] = [];
   private inflightSum = 0;
   private inflightSamples = 0;
   private windowEndsAt: number;
@@ -39,7 +41,10 @@ abstract class WindowedLimiter implements AdmissionController {
     this.inflightSamples++;
     return admit;
   }
-  onComplete(latencyMs: number): void { this.samples.push(latencyMs); }
+  onComplete(latencyMs: number, _nowMs: number, serviceMs: number | null): void {
+    this.latencies.push(latencyMs);
+    if (serviceMs != null) this.services.push(serviceMs);
+  }
   onTick(nowMs: number): void {
     if (nowMs < this.windowEndsAt) return;
     this.windowEndsAt = nowMs + this.bounds.windowMs;
@@ -51,13 +56,21 @@ abstract class WindowedLimiter implements AdmissionController {
     const utilised = meanInflight * 2 >= this.limit;
     this.inflightSum = 0;
     this.inflightSamples = 0;
-    if (this.samples.length === 0) return;
-    const avg = this.samples.reduce((a, b) => a + b, 0) / this.samples.length;
-    this.samples = [];
-    const next = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const latencies = this.latencies, services = this.services;
+    this.latencies = [];
+    this.services = [];
+    if (latencies.length === 0) return;
+    // A window whose completions were all abandoned has no service samples; it is judged against the last
+    // known baseline. Until one request has been served to completion there is nothing to judge against.
+    if (services.length > 0) this.baseline.push(mean(services));
+    const base = this.baseline.current();
+    if (base == null) return;
+    const next = clamp(this.update(mean(latencies), base), this.bounds.minLimit, this.bounds.maxLimit);
     if (next < this.limit || utilised) this.limit = next;
   }
   currentLimit(): number { return Math.floor(this.limit); }
+  // windowAvgMs is the window's mean latency (wait + service); baselineMs is the backend's processing time.
   protected abstract update(windowAvgMs: number, baselineMs: number): number;
 }
 

@@ -8,7 +8,7 @@ side-by-side real-time simulation of one backend under identical load with two a
 3. **Static limits** — capacity moves, so no fixed number is right in every regime.
 4. **Adaptive limits** — AIMD and Gradient limiters track capacity; tune them and watch stability vs responsiveness.
 
-Live: <VERCEL_URL>
+Live: https://adaptive-limits-simulator.vercel.app
 
 ## Run locally
 
@@ -37,4 +37,3 @@ thing that differs between the two runs is the admission controller.
 - `src/components/` — flow animation, canvas charts, dashboard, controls, sidebar
 - `src/lessons/` — one file per lesson: config, controllers, event buttons, copy
 
-See `docs/RATIONALE.md` for design decisions and trade-offs.

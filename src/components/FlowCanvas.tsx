@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createFlow, stepFlow, type FlowState, type Particle } from '../anim/flowModel';
+import { contentWidth } from './contentWidth';
 import type { TickMetrics } from '../sim/types';
 
 export interface LaneView { label: string; color: string; latest?: TickMetrics; }
@@ -44,9 +45,9 @@ interface Geometry { laneY: number[]; client: Box; shaper: Box[]; backend: Box[]
 function geometry(w: number, h: number, n: number): Geometry {
   const laneY = Array.from({ length: n }, (_, i) => (h * (i + 0.5)) / n);
   const boxH = Math.min(68, h / n - 20);
-  const shaperW = Math.min(160, w * 0.2), backendW = Math.min(230, w * 0.28);
-  const client: Box = { x: 8, y: laneY[0] - boxH / 2, w: Math.min(110, w * 0.14), h: laneY[n - 1] + boxH / 2 - (laneY[0] - boxH / 2) };
-  const shaperX = w * 0.42 - shaperW / 2, backendX = w * 0.77 - backendW / 2;
+  const shaperW = Math.min(160, w * 0.22), backendW = Math.min(230, w * 0.3);
+  const client: Box = { x: 8, y: laneY[0] - boxH / 2, w: Math.min(110, w * 0.15), h: laneY[n - 1] + boxH / 2 - (laneY[0] - boxH / 2) };
+  const shaperX = w * 0.42 - shaperW / 2, backendX = Math.min(w * 0.77 - backendW / 2, w - backendW - 24);
   return {
     laneY, client,
     shaper: laneY.map((y) => ({ x: shaperX, y: y - boxH / 2, w: shaperW, h: boxH })),
@@ -59,7 +60,7 @@ const fmt = (v: number) => Math.round(v).toLocaleString();
 
 function draw(canvas: HTMLCanvasElement | null, flow: FlowState, lanes: LaneView[], height: number) {
   if (!canvas || !canvas.parentElement) return;
-  const w = Math.max(640, canvas.parentElement.clientWidth);
+  const w = contentWidth(canvas.parentElement); // never wider than the column: the pane must not scroll sideways
   const dpr = window.devicePixelRatio || 1;
   if (canvas.width !== w * dpr || canvas.height !== height * dpr) {
     canvas.width = w * dpr; canvas.height = height * dpr;

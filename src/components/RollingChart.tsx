@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { contentWidth } from './contentWidth';
 
 export const WINDOW_POINTS = 600; // 60s at one point per 100ms
 export interface Series { label: string; color: string; data: (number | null)[]; dashed?: boolean; }
@@ -6,7 +7,7 @@ export interface Threshold { value: number; label: string; color: string; }
 // yMax fixes the axis top; yCap lets it auto-scale but never exceed the cap (values beyond are clipped).
 interface Props { title: string; unit: string; series: Series[]; thresholds?: Threshold[]; yMax?: number; yCap?: number; height?: number; }
 
-const PAD = { left: 44, right: 8, top: 8, bottom: 18 };
+const PAD = { left: 48, right: 40, top: 10, bottom: 20 }; // right pad leaves room for "now" and threshold labels
 const fmt = (v: number) => (Math.abs(v) >= 10 ? Math.round(v).toLocaleString() : v.toFixed(1));
 
 function niceCeil(v: number): number {
@@ -27,7 +28,7 @@ export function RollingChart({ title, unit, series, thresholds = [], yMax, yCap,
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !canvas.parentElement) return;
-    const width = canvas.parentElement.clientWidth;
+    const width = contentWidth(canvas.parentElement);
     const dpr = window.devicePixelRatio || 1;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -82,14 +83,15 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Serie
     ctx.textAlign = 'right';
     ctx.fillText(fmt(v), PAD.left - 6, yy + 4);
   }
-  ctx.textAlign = 'left'; ctx.fillText('−60s', PAD.left, h - 4);
-  ctx.textAlign = 'right'; ctx.fillText('now', w - PAD.right, h - 4);
+  ctx.textAlign = 'left'; ctx.fillText('−60s', PAD.left, h - 5);
+  ctx.textAlign = 'center'; ctx.fillText('now', w - PAD.right, h - 5);
 
   for (const t of thresholds) {
     ctx.save();
     ctx.setLineDash([6, 4]); ctx.strokeStyle = t.color; ctx.fillStyle = t.color;
     ctx.beginPath(); ctx.moveTo(PAD.left, y(t.value)); ctx.lineTo(w - PAD.right, y(t.value)); ctx.stroke();
-    ctx.textAlign = 'right'; ctx.fillText(t.label, w - PAD.right - 2, y(t.value) - 3);
+    ctx.setLineDash([]);
+    ctx.textAlign = 'left'; ctx.fillText(t.label, w - PAD.right + 6, y(t.value) + 4); // in the right margin, beside the line
     ctx.restore();
   }
 

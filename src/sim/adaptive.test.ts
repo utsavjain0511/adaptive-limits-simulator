@@ -140,10 +140,13 @@ describe('processing-time baseline: congestion is latency in excess of the time 
   it('weights the baseline by completions, so a one-request window at the fast end of the jitter does not drag it down', () => {
     const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
     window(c, 9, 200, 0, 200);              // 20 served at 200 ms
-    window(c, 9, 140, 100, 140, 1);         // one lucky ×0.7 request; unweighted the baseline would read 170
+    window(c, 9, 140, 100, 140, 1);         // one lucky ×0.7 request
     const before = c.currentLimit()!;
-    window(c, 9, 250, 200, 250);            // ordinary window, slightly slow, nobody queueing:
-    expect(c.currentLimit()).toBeGreaterThanOrEqual(before); // 250 < 1.3 × ~197, so no backoff (1.3 × 170 = 221 would)
+    // A slightly slow window with nobody queueing. The judged window is part of the baseline, so:
+    // weighted (20×200 + 1×140 + 20×270) / 41 ≈ 233 → threshold ≈ 302 > 270: no backoff;
+    // unweighted (200 + 140 + 270) / 3 ≈ 203 → threshold ≈ 264 < 270: a spurious backoff.
+    window(c, 9, 270, 200, 270);
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before);
   });
 
   it('does not judge a window with fewer than five completions', () => {
@@ -161,11 +164,16 @@ describe('processing-time baseline: congestion is latency in excess of the time 
     for (let w = 0; w < 5; w++) window(c, 9, 200, w * 100, 200);
     const before = c.currentLimit()!;
     // The dependency gets 3× slower: latency and processing time triple together, nothing waits for a worker.
-    for (let w = 5; w < 10; w++) window(c, 9, 600, w * 100, 600);
-    expect(c.currentLimit()).toBeGreaterThanOrEqual(before); // never backed off
+    // The first slow window is judged against a baseline still two-thirds fast, so one backoff step is
+    // allowed; after that the baseline has caught up and the limit must be growing again.
+    let lowest = Infinity;
+    for (let w = 5; w < 10; w++) { window(c, 9, 600, w * 100, 600); lowest = Math.min(lowest, c.currentLimit()!); }
+    expect(lowest).toBeGreaterThanOrEqual(Math.floor(before * AIMD_PRESETS.stable.backoffRatio));
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before);
     // Real queueing on top of the slow backend still reads as congestion.
+    const recovered = c.currentLimit()!;
     window(c, 9, 1800, 1000, 600);
-    expect(c.currentLimit()).toBeLessThan(before);
+    expect(c.currentLimit()).toBeLessThan(recovered);
   });
 
   for (const [name, make] of STABLE) {

@@ -53,8 +53,8 @@ side. Three layers, dependencies flow downward only:
   assertion; if you do change an assertion, say so in the PR. New lessons should get one too.
 - Knob changes re-instantiate the limiter rather than mutating it live; the visible jump is intentional.
 
-`README.md` lists the module map for readers and `docs/RATIONALE.md` records design decisions and
-trade-offs. When you make a non-obvious trade-off, add a bullet to RATIONALE rather than a long code comment.
+`README.md` lists the module map for readers. Keep non-obvious trade-offs to a short code comment or a
+README note.
 
 ## Workflow: one task, one branch, one PR
 

@@ -8,7 +8,7 @@ export function Sidebar({ titles, index, collapsed, onChange, onToggle }: Props)
         {titles.map((t, i) => (
           <li key={t}>
             <button className={i === index ? 'active' : ''} onClick={() => onChange(i)} title={t} aria-current={i === index ? 'page' : undefined}>
-              <span className="num">{i + 1}</span>
+              <span className="num">{i === 0 ? '·' : i}</span>
               <span className="name">{t}</span>
             </button>
           </li>

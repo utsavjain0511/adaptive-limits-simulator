@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 5</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="/transcripts/index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 5/12</h1>
+        
+
+<div class="pagination">
+<a href="/transcripts/index.html" class="index-link">Index</a>
+<a href="/transcripts/page-004.html">&larr; Prev</a>
+<a href="/transcripts/page-001.html">1</a>
+<a href="/transcripts/page-002.html">2</a>
+<a href="/transcripts/page-003.html">3</a>
+<a href="/transcripts/page-004.html">4</a>
+<span class="current">5</span>
+<a href="/transcripts/page-006.html">6</a>
+<a href="/transcripts/page-007.html">7</a>
+<a href="/transcripts/page-008.html">8</a>
+<a href="/transcripts/page-009.html">9</a>
+<a href="/transcripts/page-010.html">10</a>
+<a href="/transcripts/page-011.html">11</a>
+<a href="/transcripts/page-012.html">12</a>
+<a href="/transcripts/page-006.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-13T23-57-16-023Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-13T23-57-16-023Z" class="timestamp-link"><time datetime="2026-09-13T23:57:16.023Z" data-timestamp="2026-09-13T23:57:16.023Z">2026-09-13T23:57:16.023Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Explain why you have chosen mulberry32 for random number generator in poisson distribution?</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-13T23-57-38-599Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-13T23-57-38-599Z" class="timestamp-link"><time datetime="2026-09-13T23:57:38.599Z" data-timestamp="2026-09-13T23:57:38.599Z">2026-09-13T23:57:38.599Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-13T23-57-52-702Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-13T23-57-52-702Z" class="timestamp-link"><time datetime="2026-09-13T23:57:52.702Z" data-timestamp="2026-09-13T23:57:52.702Z">2026-09-13T23:57:52.702Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Short version: the simulation needs a <strong>seedable</strong> generator, and mulberry32 is the smallest good one that's safe to write in plain JavaScript.</p>
+<p><strong>Why not <code>Math.random</code></strong>
+It can't be seeded. Three things in the lab depend on replaying the exact same arrival sequence:
+- The A/B comparison — run A and run B must see identical arrivals so that any difference between the red and teal lines is caused by the admission policy, not by noise.
+- Reset → Start reproducing the same curves.
+- The scenario tests (<code>engine.test.ts</code> "is deterministic for a seed", and the lesson-outcome assertions), which would be flaky with an unseeded source.</p>
+<p><strong>Why mulberry32 among seedable PRNGs</strong>
+- <strong>Tiny and dependency-free</strong> — six lines. The app has no runtime dependency beyond React, and pulling in a PRNG package for this would be disproportionate.
+- <strong>Pure 32-bit integer arithmetic</strong> via <code>Math.imul</code> and <code>&gt;&gt;&gt; 0</code>. JavaScript only has doubles, so generators that need 64-bit multiplies (PCG, xoshiro256, splitmix64) either require BigInt (slow) or careful hi/lo emulation. Mulberry32 is designed for exactly the 32-bit-int subset JS can do quickly and correctly.
+- <strong>Fast</strong> — a handful of ops per draw. Knuth's Poisson sampler draws roughly λ+1 uniforms per sample, and the engine samples 50 times per simulated second per run, so it's called thousands of times per second at 4× speed.
+- <strong>Good enough statistical quality for its size.</strong> It's from the well-known set of minimal JS PRNGs (Tommy Ettinger's design) and passes the usual batteries to a degree a naive LCG doesn't — a classic 32-bit LCG has correlated low bits, which would show up as structure in the arrival counts. Its period is 2³², and a 60-second run consumes on the order of 10⁵ draws, so exhaustion isn't a concern.</p>
+<p><strong>A design detail that matters more than the generator itself</strong>
+The RNG is used <em>only</em> for the arrival stream, and arrivals are drawn each tick <strong>before</strong> the controller decides anything. Per-request service-time jitter deliberately doesn't touch the RNG — it's <code>hashUnit(requestId)</code>, a hash of the request id — and ids are assigned to every arrival including rejected ones. So a controller that rejects a request in run A can't shift the random sequence and change what run B sees; both runs get request #4132 with the same jitter. If jitter had come from the shared RNG, the first rejection would desynchronise the runs and the "same arrivals" claim would be false.</p>
+<p><strong>Limitations, for honesty</strong>
+Not cryptographic (irrelevant here), only 2³² distinct seeds/streams, and for λ &gt; 200 the sampler switches to a Box-Muller normal approximation that uses two uniforms per sample — all fine for a teaching simulation. If I ever needed longer periods or multiple independent streams, sfc32 or splitmix32 would be the next step up at similar cost.</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T00-12-58-788Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T00-12-58-788Z" class="timestamp-link"><time datetime="2026-09-14T00:12:58.788Z" data-timestamp="2026-09-14T00:12:58.788Z">2026-09-14T00:12:58.788Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Add some test cases for rng.ts to explain what we are achieving from different functions. 
+Example: 
+1. for mulberry32 same seed reproduces the same sequence; outputs are finite and in [0, 1); 
+2. Zero/negative rates return 0; outputs are nonnegative integers; sampled mean and variance are reasonably close to the requested lambda.
+3. Exercise values below, at, and above lambda = 200, where the implementation switches algorithms.
+4. Same request ID gives the same result; outputs remain in [0, 1), including large IDs.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-13-22-023Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-13-22-023Z" class="timestamp-link"><time datetime="2026-09-14T00:13:22.023Z" data-timestamp="2026-09-14T00:13:22.023Z">2026-09-14T00:13:22.023Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-13-42-138Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-13-42-138Z" class="timestamp-link"><time datetime="2026-09-14T00:13:42.138Z" data-timestamp="2026-09-14T00:13:42.138Z">2026-09-14T00:13:42.138Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_016ANn1NkggZP284HkVXbtvQ">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">rng.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/rng.test.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">import { describe, it, expect } from &#39;vitest&#39;;
+import { mulberry32, poisson, hashUnit } from &#39;./rng&#39;;
+
+const draws = (seed: number, n: number) =&gt; { const r = mulberry32(seed); return Array.from({ length: n }, () =&gt; r()); };
+const mean = (xs: number[]) =&gt; xs.reduce((a, b) =&gt; a + b, 0) / xs.length;
+const variance = (xs: number[]) =&gt; { const m = mean(xs); return xs.reduce((a, x) =&gt; a + (x - m) ** 2, 0) / (xs.length - 1); };
+
+describe(&#39;mulberry32 — the seedable uniform source behind arrivals&#39;, () =&gt; {
+  it(&#39;reproduces the same sequence for the same seed (what makes A/B runs and tests replayable)&#39;, () =&gt; {
+    expect(draws(42, 1000)).toEqual(draws(42, 1000));
+  });
+
+  it(&#39;produces a different sequence for a different seed&#39;, () =&gt; {
+    expect(draws(42, 100)).not.toEqual(draws(43, 100));
+  });
+
+  it(&#39;yields finite numbers in [0, 1)&#39;, () =&gt; {
+    for (const x of draws(7, 10_000)) {
+      expect(Number.isFinite(x)).toBe(true);
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThan(1);
+    }
+  });
+
+  it(&#39;is roughly uniform: mean near 0.5 and each decile holds about 10% of draws&#39;, () =&gt; {
+    const xs = draws(1, 100_000);
+    expect(mean(xs)).toBeCloseTo(0.5, 2);
+    const bins = Array(10).fill(0);
+    for (const x of xs) bins[Math.floor(x * 10)]++;
+    for (const count of bins) expect(Math.abs(count - 10_000)).toBeLessThan(300); // ±3%, &gt; 3 standard deviations
+  });
+});
+
+describe(&#39;poisson — arrivals per tick&#39;, () =&gt; {
+  it(&#39;returns 0 for zero or negative rates&#39;, () =&gt; {
+    const r = mulberry32(1);
+    expect(poisson(0, r)).toBe(0);
+    expect(poisson(-5, r)).toBe(0);
+  });
+
+  it(&#39;returns non-negative integers for any positive rate&#39;, () =&gt; {
+    const r = mulberry32(2);
+    for (const lambda of [0.01, 0.5, 3, 40, 199, 200, 201, 1000]) {
+      for (let i = 0; i &lt; 500; i++) {
+        const k = poisson(lambda, r);
+        expect(Number.isInteger(k)).toBe(true);
+        expect(k).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+
+  it(&#39;is deterministic given a seeded generator&#39;, () =&gt; {
+    const a = mulberry32(9), b = mulberry32(9);
+    const sa = Array.from({ length: 200 }, () =&gt; poisson(12, a));
+    const sb = Array.from({ length: 200 }, () =&gt; poisson(12, b));
+    expect(sa).toEqual(sb);
+  });
+
+  it(&#39;has sampled mean and variance close to lambda (the defining Poisson property)&#39;, () =&gt; {
+    const r = mulberry32(3);
+    for (const lambda of [0.5, 5, 50]) {
+      const ks = Array.from({ length: 20_000 }, () =&gt; poisson(lambda, r));
+      expect(Math.abs(mean(ks) - lambda) / lambda).toBeLessThan(0.05);
+      expect(Math.abs(variance(ks) - lambda) / lambda).toBeLessThan(0.1);
+    }
+  });
+
+  // Knuth&#39;s multiplication method needs exp(-lambda), which underflows to 0 for large lambda and
+  // would loop forever, so the implementation switches to a normal approximation above 200.
+  it(&#39;stays Poisson-shaped below, at, and above the lambda = 200 algorithm switch&#39;, () =&gt; {
+    const r = mulberry32(4);
+    for (const lambda of [199, 200, 201, 1000]) {
+      const ks = Array.from({ length: 20_000 }, () =&gt; poisson(lambda, r));
+      expect(Math.abs(mean(ks) - lambda) / lambda).toBeLessThan(0.02);
+      expect(Math.abs(variance(ks) - lambda) / lambda).toBeLessThan(0.1);
+    }
+  });
+});
+
+describe(&#39;hashUnit — per-request jitter keyed by request id&#39;, () =&gt; {
+  it(&#39;gives the same value for the same id (so both A/B runs see identical service times)&#39;, () =&gt; {
+    for (const id of [0, 1, 4132, 999_999]) expect(hashUnit(id)).toBe(hashUnit(id));
+  });
+
+  it(&#39;gives different values for neighbouring ids&#39;, () =&gt; {
+    expect(hashUnit(1)).not.toBe(hashUnit(2));
+    expect(hashUnit(1000)).not.toBe(hashUnit(1001));
+  });
+
+  it(&#39;stays in [0, 1) for small, 32-bit-boundary and very large ids&#39;, () =&gt; {
+    for (const id of [0, 1, 2 ** 31 - 1, 2 ** 31, 2 ** 32 - 1, 2 ** 32, 2 ** 40, Number.MAX_SAFE_INTEGER]) {
+      const v = hashUnit(id);
+      expect(Number.isFinite(v)).toBe(true);
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThan(1);
+    }
+  });
+
+  it(&#39;spreads consecutive ids across the unit interval without a trend&#39;, () =&gt; {
+    const vs = Array.from({ length: 10_000 }, (_, i) =&gt; hashUnit(i));
+    expect(mean(vs)).toBeCloseTo(0.5, 1);
+    expect(Math.min(...vs)).toBeLessThan(0.01);
+    expect(Math.max(...vs)).toBeGreaterThan(0.99);
+    const firstHalf = mean(vs.slice(0, 5000)), secondHalf = mean(vs.slice(5000));
+    expect(Math.abs(firstHalf - secondHalf)).toBeLessThan(0.02);
+  });
+});
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T00-13-42-207Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T00-13-42-207Z" class="timestamp-link"><time datetime="2026-09-14T00:13:42.207Z" data-timestamp="2026-09-14T00:13:42.207Z">2026-09-14T00:13:42.207Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/rng.test.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-13-43-340Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-13-43-340Z" class="timestamp-link"><time datetime="2026-09-14T00:13:43.340Z" data-timestamp="2026-09-14T00:13:43.340Z">2026-09-14T00:13:43.340Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RLqiNLyFg6Y1FhtBNL4Kqw">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run the new rng tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npx vitest run src/sim/rng.test.ts 2&gt;&amp;1 | grep -E &#34;✓|×|Test Files|Tests |AssertionError|expected&#34; | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T00-13-47-960Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T00-13-47-960Z" class="timestamp-link"><time datetime="2026-09-14T00:13:47.960Z" data-timestamp="2026-09-14T00:13:47.960Z">2026-09-14T00:13:47.960Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> Test Files  1 passed (1)
+      Tests  13 passed (13)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-13-50-352Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-13-50-352Z" class="timestamp-link"><time datetime="2026-09-14T00:13:50.352Z" data-timestamp="2026-09-14T00:13:50.352Z">2026-09-14T00:13:50.352Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-13-50-356Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-13-50-356Z" class="timestamp-link"><time datetime="2026-09-14T00:13:50.356Z" data-timestamp="2026-09-14T00:13:50.356Z">2026-09-14T00:13:50.356Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-13-55-787Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-13-55-787Z" class="timestamp-link"><time datetime="2026-09-14T00:13:55.787Z" data-timestamp="2026-09-14T00:13:55.787Z">2026-09-14T00:13:55.787Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01XF87bwhWj8choh7PpnjrqM">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Typecheck, lint, full test suite, commit and push the rng tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npx tsc -b &amp;&amp; npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error&#34; ; npm test 2&gt;&amp;1 | grep -E &#34;Test Files|Tests &#34; &amp;&amp; git add src/sim/rng.test.ts &amp;&amp; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+test(sim): characterise the RNG helpers
+
+Documents what mulberry32, poisson and hashUnit guarantee: seed
+reproducibility and uniformity, Poisson mean/variance across the lambda=200
+algorithm switch, and id-keyed jitter that is stable and well spread.
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; &amp;&amp; git -c credential.helper=&#39;!gh auth git-credential&#39; push origin main 2&gt;&amp;1 | tail -1 &amp;&amp; git log --oneline | head -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T00-14-01-434Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T00-14-01-434Z" class="timestamp-link"><time datetime="2026-09-14T00:14:01.434Z" data-timestamp="2026-09-14T00:14:01.434Z">2026-09-14T00:14:01.434Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre> Test Files  5 passed (5)
+      Tests  32 passed (32)
+   9a6cbe2..f949229  main -&gt; main
+f949229 test(sim): characterise the RNG helpers</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T00-14-10-363Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T00-14-10-363Z" class="timestamp-link"><time datetime="2026-09-14T00:14:10.363Z" data-timestamp="2026-09-14T00:14:10.363Z">2026-09-14T00:14:10.363Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Added <code>src/sim/rng.test.ts</code> — 13 tests, all green (suite is now 32/32), committed as <code>f949229</code> and pushed.</p>
+<p>What each group pins down:</p>
+<ul>
+<li><strong><code>mulberry32</code></strong> — same seed → identical 1000-draw sequence (the property the A/B fairness and the deterministic tests rely on); different seed → different sequence; 10k draws all finite and in <code>[0, 1)</code>; 100k draws have mean ≈ 0.5 and every decile within ±3% of 10% (more than 3 standard deviations of slack, so it won't flake).</li>
+<li><strong><code>poisson</code></strong> — zero/negative λ → 0; non-negative integers for λ from 0.01 to 1000; deterministic given a seeded generator; sampled mean within 5% and variance within 10% of λ for λ = 0.5, 5, 50 (mean ≈ variance is the defining Poisson property). A separate test runs λ = 199, 200, 201, 1000 with a comment explaining <em>why</em> the switch exists: Knuth's method needs <code>exp(−λ)</code>, which underflows to 0 for large λ and would loop forever, so above 200 the code uses a normal approximation — the test shows both branches produce the same distribution shape.</li>
+<li><strong><code>hashUnit</code></strong> — same id → same value (why both runs get identical service-time jitter for request #4132); neighbouring ids differ; stays in <code>[0, 1)</code> at 0, the 2³¹/2³² boundaries, 2⁴⁰ and <code>MAX_SAFE_INTEGER</code> (ids above 32 bits get truncated by the int coercion, which is fine as long as the output stays bounded); 10k consecutive ids average 0.5, reach both ends of the interval, and the first and second halves have the same mean — no trend with id.</li>
+</ul></div></div></div>
+<div class="message user" id="msg-2026-09-14T03-29-23-019Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T03-29-23-019Z" class="timestamp-link"><time datetime="2026-09-14T03:29:23.019Z" data-timestamp="2026-09-14T03:29:23.019Z">2026-09-14T03:29:23.019Z</time></a></div><div class="message-content">
+<div class="user-content"><p>Add similar explanatory tests for engine.ts metrics</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-29-44-180Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-29-44-180Z" class="timestamp-link"><time datetime="2026-09-14T03:29:44.180Z" data-timestamp="2026-09-14T03:29:44.180Z">2026-09-14T03:29:44.180Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-29-45-341Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-29-45-341Z" class="timestamp-link"><time datetime="2026-09-14T03:29:45.341Z" data-timestamp="2026-09-14T03:29:45.341Z">2026-09-14T03:29:45.341Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Before writing these, I noticed the engine gained a <code>clientTimeoutMs</code> abandonment feature since I last touched it (types, defaults, tests, docs all updated) — I'll build on that state. Checking git status and the current <code>BackendConfig</code> shape first.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-29-46-984Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-29-46-984Z" class="timestamp-link"><time datetime="2026-09-14T03:29:46.984Z" data-timestamp="2026-09-14T03:29:46.984Z">2026-09-14T03:29:46.984Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_015KGy7CrsFjTZqhYgNibTwf">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show working-tree status, recent commits, BackendConfig and defaults</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status --short; echo &#34;--- log ---&#34;; git log --oneline | head -3; echo &#34;--- types ---&#34;; cat src/sim/types.ts | head -12; echo &#34;--- defaults ---&#34;; grep -n &#34;DEFAULT_BACKEND&#34; src/lessons/defaults.ts</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-29-47-079Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-29-47-079Z" class="timestamp-link"><time datetime="2026-09-14T03:29:47.079Z" data-timestamp="2026-09-14T03:29:47.079Z">2026-09-14T03:29:47.079Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- log ---
+a83cf8b fix(sim): bound in-flight with a client timeout
+321a19f Merge pull request #1 from utsavjain0511/docs/claude-md-and-pr-template
+0aaf85a docs: note that merge is the approval and branches are deleted on merge
+--- types ---
+export interface BackendConfig {
+  capacity: number;        // concurrent requests served at nominal speed
+  serviceTimeMs: number;   // nominal per-request service time
+  overloadPenalty: number; // extra slowdown per unit of oversubscription (thrashing)
+  slaMs: number;           // client deadline; slower completions count as failures
+  clientTimeoutMs: number; // client gives up and abandons the request; bounds in-flight under overload
+}
+
+export type LoadKind = &#x27;ramp&#x27; | &#x27;spike&#x27; | &#x27;sustained&#x27; | &#x27;oscillating&#x27;;
+export interface LoadPattern { kind: LoadKind; baseRps: number; peakRps: number; }
+
+export interface SimEvent { kind: &#x27;capacity&#x27; | &#x27;serviceTime&#x27;; multiplier: number; durationMs: number; }
+--- defaults ---
+3:export const DEFAULT_BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10000 };</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-29-52-987Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-29-52-987Z" class="timestamp-link"><time datetime="2026-09-14T03:29:52.987Z" data-timestamp="2026-09-14T03:29:52.987Z">2026-09-14T03:29:52.987Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-29-52-991Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-29-52-991Z" class="timestamp-link"><time datetime="2026-09-14T03:29:52.991Z" data-timestamp="2026-09-14T03:29:52.991Z">2026-09-14T03:29:52.991Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-29-54-648Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-29-54-648Z" class="timestamp-link"><time datetime="2026-09-14T03:29:54.648Z" data-timestamp="2026-09-14T03:29:54.648Z">2026-09-14T03:29:54.648Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014hCji98VfNHQSmrQnWboRD">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read the project CLAUDE.md, PR template, and branches</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">ls -la CLAUDE.md .github 2&gt;/dev/null; echo &#34;--- CLAUDE.md ---&#34;; cat CLAUDE.md 2&gt;/dev/null; echo &#34;--- PR template ---&#34;; cat .github/PULL_REQUEST_TEMPLATE.md 2&gt;/dev/null; echo &#34;--- branches ---&#34;; git branch -a</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-29-54-719Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-29-54-719Z" class="timestamp-link"><time datetime="2026-09-14T03:29:54.719Z" data-timestamp="2026-09-14T03:29:54.719Z">2026-09-14T03:29:54.719Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>-rw-r--r--@ 1 utsavjain  staff  5456 Sep 13 19:39 CLAUDE.md
+
+.github:
+total 8
+drwxr-xr-x@  3 utsavjain  staff   96 Sep 13 19:39 .
+drwxr-xr-x@ 20 utsavjain  staff  640 Sep 13 19:39 ..
+-rw-r--r--@  1 utsavjain  staff  529 Sep 13 19:39 pull_request_template.md
+--- CLAUDE.md ---
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```sh
+npm run dev                                  # Vite dev server on http://localhost:5173
+npm test                                     # vitest run (all tests)
+npx vitest run src/sim/adaptive.test.ts      # one file
+npx vitest run -t &quot;capacity drop&quot;            # tests whose name matches
+npm run lint                                 # oxlint (config in .oxlintrc.json)
+npm run build                                # tsc -b &amp;&amp; vite build — this is the type check; there is no separate tsc script
+```
+
+Before claiming a change works, run `npm run lint`, `npm run build`, and `npm test`. `noUnusedLocals` and
+`noUnusedParameters` are on, so an unused import fails the build. There is no Prettier; match the style of the
+surrounding file (single quotes, semicolons, compact one-line object literals and interfaces).
+
+## Architecture
+
+The app is an A/B lab: one simulated backend, identical load, two admission-control policies, rendered side by
+side. Three layers, dependencies flow downward only:
+
+1. **`src/sim/`** — pure TypeScript, no React, fully deterministic. `Simulation` in `engine.ts` advances in
+   20 ms ticks (`DT_MS`): Poisson arrivals from a seeded `mulberry32` RNG, each request asks the
+   `AdmissionController` (`types.ts`) whether it is admitted, in-flight requests share the backend&#x27;s budget
+   and pay a thrashing penalty past `capacity`, and completions slower than `slaMs` count as failures.
+   `controllers.ts` holds the static policies (`NoLimit`, `ConcurrencyLimiter`, `RpsLimiter`);
+   `adaptive.ts` holds `AimdLimiter` and `GradientLimiter` plus their `stable`/`aggressive`/`sluggish`
+   presets. `SimEvent`s (capacity drop, downstream slowdown) temporarily scale the backend.
+2. **`src/app/useLab.ts`** — the runner. Takes a `LabSpec` (backend, load, N `RunSpec`s, seed), creates one
+   `Simulation` per run with the *same* seed, steps them in lockstep on a 100 ms interval, and keeps a rolling
+   history of `TickMetrics` per run (one point per 100 ms simulated, `WINDOW_POINTS` long).
+3. **`src/lessons/` + `src/components/`** — each `LessonN.tsx` is a `LabSpec`, optional event buttons/knobs,
+   and copy, handed to `LessonLayout`. `LESSONS` in `lessons/index.ts` is the ordered list the sidebar
+   renders. `RollingChart` and `FlowCanvas` are hand-written canvas components; the flow animation
+   (`src/anim/flowModel.ts`) is driven from `TickMetrics`, not from individual simulated requests.
+
+### Invariants to preserve
+
+- **Determinism is the whole argument.** Both runs must see identical arrivals, so nothing under `src/sim/`
+  may call `Math.random`, `Date.now`, or read anything outside its inputs. Per-request jitter comes from
+  `hashUnit(id)`, not the shared RNG, so admitting or rejecting a request does not perturb later arrivals.
+- **Controllers only see the interface.** A new policy implements `AdmissionController` and nothing else;
+  the engine must not special-case a controller.
+- **Latency metrics fall back to the oldest in-flight age** when nothing completes in the window (a stalled
+  backend would otherwise report 0 ms). Keep that behaviour if you touch `metrics()` or the flow model.
+- **Scenario tests are the tuning harness.** Describe blocks named `lesson N scenario: ...` (today only lesson 4 in `adaptive.test.ts`) assert a lesson&#x27;s expected
+  picture (e.g. AIMD keeps goodput above a floor during a capacity drop where static 50 does not). If a
+  change to backend defaults, presets, or the engine makes one fail, the fix is usually the tuning, not the
+  assertion; if you do change an assertion, say so in the PR. New lessons should get one too.
+- Knob changes re-instantiate the limiter rather than mutating it live; the visible jump is intentional.
+
+`README.md` lists the module map for readers and `docs/RATIONALE.md` records design decisions and
+trade-offs. When you make a non-obvious trade-off, add a bullet to RATIONALE rather than a long code comment.
+
+## Workflow: one task, one branch, one PR
+
+- Never commit to `main` and never merge. The user reviews and merges every PR. Do not run `gh pr merge`,
+  do not push to `main`, and do not enable auto-merge.
+- Each composable task gets its own branch off up-to-date `main`, named `&lt;type&gt;/&lt;short-kebab-summary&gt;`
+  (e.g. `feat/retry-budget-lesson`, `fix/p99-stall-fallback`). If a request contains several independent
+  changes, split it into several PRs and say which order they should merge in.
+- Commit messages use the conventional prefixes already in the history: `feat(sim):`, `feat(ui):`,
+  `fix(app):`, `test(sim):`, `docs:`, `chore:`. Scope is the top-level `src/` directory touched.
+- Before opening a PR: lint, build, and tests must pass locally; paste the commands you ran into the
+  Testing section. Open it with `gh pr create` and fill the body from `.github/pull_request_template.md`
+  (Summary, Motivation, Testing). Every section is required; if there was no test to run, say why.
+- After opening the PR, stop and report the URL. Do not start the next task on the same branch. PRs are
+  authored by the user&#x27;s own GitHub account, so GitHub will not show an Approve button; the merge itself is
+  the approval. Branches are deleted on merge; after a merge, `git checkout main &amp;&amp; git pull` before branching.
+
+If a repo-specific convention is not covered here, ask rather than assume.
+--- PR template ---
+## Summary
+
+&lt;!-- What changed, in two or three sentences. Name the files or modules a reviewer should open first. --&gt;
+
+## Motivation
+
+&lt;!-- Why this change: the problem, the lesson it serves, or the bug it fixes. Link the issue or discussion if there is one. --&gt;
+
+## Testing
+
+&lt;!-- What you ran and what you saw. Include the exact commands. Note any scenario-test assertion you changed and why. --&gt;
+
+- [ ] `npm run lint`
+- [ ] `npm run build`
+- [ ] `npm test`
+- [ ] Verified in the browser (`npm run dev`) if the change touches UI
+--- branches ---
+  docs/claude-md-and-pr-template
+* fix/client-timeout-bounds-inflight
+  main
+  remotes/origin/HEAD -&gt; origin/main
+  remotes/origin/docs/claude-md-and-pr-template
+  remotes/origin/fix/client-timeout-bounds-inflight
+  remotes/origin/main</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-21-148Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-21-148Z" class="timestamp-link"><time datetime="2026-09-14T03:30:21.148Z" data-timestamp="2026-09-14T03:30:21.148Z">2026-09-14T03:30:21.148Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_017LWaijbXz8ww9CWvopmC5u">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">metrics.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/metrics.test.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">import { describe, it, expect } from &#39;vitest&#39;;
+import { Simulation, DT_MS } from &#39;./engine&#39;;
+import { ConcurrencyLimiter } from &#39;./controllers&#39;;
+import type { AdmissionController, BackendConfig, TickMetrics } from &#39;./types&#39;;
+
+// Explains what each field of TickMetrics means and how it is computed.
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, overloadPenalty: 1.0, slaMs: 1000, clientTimeoutMs: 10_000 };
+const admitAll: AdmissionController = { name: &#39;all&#39;, shouldAdmit: () =&gt; true, onComplete() {}, onTick() {}, currentLimit: () =&gt; null };
+const admitNone: AdmissionController = { ...admitAll, name: &#39;none&#39;, shouldAdmit: () =&gt; false };
+const sustained = (rps: number) =&gt; ({ kind: &#39;sustained&#39; as const, baseRps: rps, peakRps: rps });
+const sim = (rps: number, controller = admitAll, backend = BACKEND) =&gt;
+  new Simulation({ backend, load: sustained(rps), controller, seed: 5 });
+
+function run(s: Simulation, seconds: number): TickMetrics {
+  let m!: TickMetrics;
+  for (let i = 0; i &lt; (seconds * 1000) / DT_MS; i++) m = s.step();
+  return m;
+}
+
+describe(&#39;time and rates&#39;, () =&gt; {
+  it(&#39;tMs advances by one tick per step&#39;, () =&gt; {
+    const s = sim(10);
+    expect(s.step().tMs).toBe(DT_MS);
+    expect(s.step().tMs).toBe(2 * DT_MS);
+  });
+
+  it(&#39;rates are per-second averages over a rolling 1 s window&#39;, () =&gt; {
+    const m = run(sim(100), 10);
+    expect(m.offeredRps).toBeGreaterThan(75);
+    expect(m.offeredRps).toBeLessThan(125);
+  });
+
+  it(&#39;rates are already per-second during the first second (a shorter window is scaled, not padded)&#39;, () =&gt; {
+    const m = run(sim(100), 0.2); // 10 ticks in the window
+    expect(m.offeredRps).toBeGreaterThan(40);
+    expect(m.offeredRps).toBeLessThan(180);
+  });
+
+  it(&#39;every offered request is either admitted or rejected&#39;, () =&gt; {
+    const m = run(sim(300, new ConcurrencyLimiter(20)), 5);
+    expect(m.admittedRps + m.rejectedRps).toBeCloseTo(m.offeredRps, 6);
+    expect(m.rejectedRps).toBeGreaterThan(0);
+  });
+});
+
+describe(&#39;inflight, capacity and limit&#39;, () =&gt; {
+  it(&#34;inflight follows Little&#39;s law below capacity: rps × service time&#34;, () =&gt; {
+    const m = run(sim(100), 10); // 100 rps × 0.2 s ≈ 20, well under capacity 50
+    expect(m.inflight).toBeGreaterThan(10);
+    expect(m.inflight).toBeLessThan(35);
+  });
+
+  it(&#39;inflight is 0 when nothing is admitted&#39;, () =&gt; {
+    expect(run(sim(100, admitNone), 3).inflight).toBe(0);
+  });
+
+  it(&#39;capacity reports the effective value, including active events&#39;, () =&gt; {
+    const s = sim(10);
+    expect(s.step().capacity).toBe(50);
+    s.triggerEvent({ kind: &#39;capacity&#39;, multiplier: 0.5, durationMs: 500 });
+    expect(s.step().capacity).toBe(25);
+  });
+
+  it(&#39;limit mirrors the controller: null without one, the number with one&#39;, () =&gt; {
+    expect(run(sim(10), 1).limit).toBeNull();
+    expect(run(sim(10, new ConcurrencyLimiter(7)), 1).limit).toBe(7);
+  });
+});
+
+describe(&#39;latency&#39;, () =&gt; {
+  it(&#39;mean latency ≈ service time when the backend is not oversubscribed&#39;, () =&gt; {
+    const m = run(sim(100), 10);
+    expect(m.meanLatencyMs).toBeGreaterThan(180); // jitter 0.7–1.3 averages to 1.0; 20 ms tick quantisation rounds up
+    expect(m.meanLatencyMs).toBeLessThan(260);
+  });
+
+  it(&#39;p99 is never below the mean and reflects the slowest completions&#39;, () =&gt; {
+    const m = run(sim(100), 10);
+    expect(m.p99LatencyMs).toBeGreaterThanOrEqual(m.meanLatencyMs);
+    expect(m.p99LatencyMs).toBeLessThanOrEqual(BACKEND.serviceTimeMs * 1.3 + DT_MS);
+  });
+
+  it(&#39;a serviceTime event scales latency by its multiplier&#39;, () =&gt; {
+    const s = sim(100);
+    run(s, 5);
+    s.triggerEvent({ kind: &#39;serviceTime&#39;, multiplier: 3, durationMs: 10_000 });
+    const m = run(s, 5);
+    expect(m.meanLatencyMs).toBeGreaterThan(500);
+    expect(m.meanLatencyMs).toBeLessThan(750);
+  });
+
+  it(&#39;when nothing completes, mean and p99 report the age of the oldest in-flight request instead of 0&#39;, () =&gt; {
+    // A single slot with a 100 s service time: requests pile up and none finish within the 3 s window.
+    const stalled: BackendConfig = { ...BACKEND, capacity: 1, serviceTimeMs: 100_000 };
+    const m = run(sim(10, admitAll, stalled), 2);
+    expect(m.inflight).toBeGreaterThan(0);
+    expect(m.p99LatencyMs).toBeGreaterThan(1500);
+    expect(m.p99LatencyMs).toBeLessThanOrEqual(2000);
+    expect(m.meanLatencyMs).toBe(m.p99LatencyMs);
+  });
+});
+
+describe(&#39;goodput, timeouts and availability&#39;, () =&gt; {
+  it(&#39;goodput ≈ offered and availability ≈ 1 when every request meets the SLA&#39;, () =&gt; {
+    const m = run(sim(100), 10);
+    expect(m.goodputRps).toBeGreaterThan(75);
+    expect(m.goodputRps).toBeLessThan(125);
+    expect(m.timedOutRps).toBe(0);
+    expect(m.availability).toBeGreaterThan(0.9);
+  });
+
+  it(&#39;a completion slower than the SLA counts as timed out, not good, even though the server did the work&#39;, () =&gt; {
+    const strict: BackendConfig = { ...BACKEND, slaMs: 100 }; // below the 200 ms service time
+    const m = run(sim(100, admitAll, strict), 10);
+    expect(m.goodputRps).toBe(0);
+    expect(m.timedOutRps).toBeGreaterThan(75);
+    expect(m.availability).toBe(0);
+  });
+
+  it(&#39;rejected requests are not good responses, so availability = goodput ÷ offered&#39;, () =&gt; {
+    const m = run(sim(300, new ConcurrencyLimiter(20)), 10);
+    expect(m.availability).toBeCloseTo(Math.min(1, m.goodputRps / m.offeredRps), 6);
+    expect(m.availability).toBeLessThan(0.6);
+  });
+
+  it(&#39;availability is clamped to 1 (completions can briefly outnumber arrivals in a window)&#39;, () =&gt; {
+    const s = sim(100);
+    for (let i = 0; i &lt; 500; i++) expect(s.step().availability).toBeLessThanOrEqual(1);
+  });
+
+  it(&#39;availability is 1 when nothing is offered (no traffic means nothing failed)&#39;, () =&gt; {
+    expect(run(sim(0), 2).availability).toBe(1);
+    expect(run(sim(0), 2).offeredRps).toBe(0);
+  });
+});
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-30-21-204Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-30-21-204Z" class="timestamp-link"><time datetime="2026-09-14T03:30:21.204Z" data-timestamp="2026-09-14T03:30:21.204Z">2026-09-14T03:30:21.204Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/metrics.test.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-36-245Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-36-245Z" class="timestamp-link"><time datetime="2026-09-14T03:30:36.245Z" data-timestamp="2026-09-14T03:30:36.245Z">2026-09-14T03:30:36.245Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-36-251Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-36-251Z" class="timestamp-link"><time datetime="2026-09-14T03:30:36.251Z" data-timestamp="2026-09-14T03:30:36.251Z">2026-09-14T03:30:36.251Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I'm on the <code>fix/client-timeout-bounds-inflight</code> branch, which my tests depend on via its <code>clientTimeoutMs</code> field, so I'll check whether that PR is merged while also running the new tests in parallel.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-36-650Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-36-650Z" class="timestamp-link"><time datetime="2026-09-14T03:30:36.650Z" data-timestamp="2026-09-14T03:30:36.650Z">2026-09-14T03:30:36.650Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EMCivxdKaD82XqqG9kerGB">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check main&#39;s history, PR list, and whether main has the client-timeout change</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">echo &#34;--- main ---&#34;; git log main --oneline | head -3; echo &#34;--- PRs ---&#34;; gh pr list --state all --limit 10 2&gt;&amp;1; echo &#34;--- main has clientTimeoutMs? ---&#34;; git show main:src/sim/types.ts | grep -c clientTimeoutMs</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-37-884Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-37-884Z" class="timestamp-link"><time datetime="2026-09-14T03:30:37.884Z" data-timestamp="2026-09-14T03:30:37.884Z">2026-09-14T03:30:37.884Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Aq5EXgZRUApn9Wxpk8muBs">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run the new metrics tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npx vitest run src/sim/metrics.test.ts 2&gt;&amp;1 | grep -E &#34;✓|×|Test Files|Tests |AssertionError|expected|Error&#34; | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-30-41-372Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-30-41-372Z" class="timestamp-link"><time datetime="2026-09-14T03:30:41.372Z" data-timestamp="2026-09-14T03:30:41.372Z">2026-09-14T03:30:41.372Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- main ---
+321a19f Merge pull request #1 from utsavjain0511/docs/claude-md-and-pr-template
+0aaf85a docs: note that merge is the approval and branches are deleted on merge
+9bd7628 docs: be precise about which scenario tests exist
+--- PRs ---
+2	fix(sim): bound in-flight with a client timeout	fix/client-timeout-bounds-inflight	MERGED	2026-09-14T02:42:51Z
+1	docs: add CLAUDE.md and PR template	docs/claude-md-and-pr-template	MERGED	2026-09-14T02:26:32Z
+--- main has clientTimeoutMs? ---
+0</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-30-44-061Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-30-44-061Z" class="timestamp-link"><time datetime="2026-09-14T03:30:44.061Z" data-timestamp="2026-09-14T03:30:44.061Z">2026-09-14T03:30:44.061Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     × a serviceTime event scales latency by its multiplier 9ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected 1748.695652173913 to be less than 750
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 passed (17)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-59-465Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-59-465Z" class="timestamp-link"><time datetime="2026-09-14T03:30:59.465Z" data-timestamp="2026-09-14T03:30:59.465Z">2026-09-14T03:30:59.465Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-30-59-470Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-30-59-470Z" class="timestamp-link"><time datetime="2026-09-14T03:30:59.470Z" data-timestamp="2026-09-14T03:30:59.470Z">2026-09-14T03:30:59.470Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I'll fast-forward my local main since PR #2 merged remotely, then branch <code>test/engine-metrics</code> from it per CLAUDE.md. The test failure revealed a flawed assumption on my part — 100 rps at 3x service time oversubscribes capacity, so I'll switch to 50 rps to properly test the event's actual behavior.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-00-003Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-00-003Z" class="timestamp-link"><time datetime="2026-09-14T03:31:00.003Z" data-timestamp="2026-09-14T03:31:00.003Z">2026-09-14T03:31:00.003Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013Uyi18j6SNXa7ASpfx55c5">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">metrics.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/metrics.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  it(&#39;a serviceTime event scales latency by its multiplier&#39;, () =&gt; {
+    const s = sim(100);
+    run(s, 5);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  it(&#39;a serviceTime event scales latency by its multiplier&#39;, () =&gt; {
+    const s = sim(50); // 50 rps × 0.6 s = 30 in flight after the event: still under capacity, so no thrashing on top
+    run(s, 5);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-31-00-029Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-31-00-029Z" class="timestamp-link"><time datetime="2026-09-14T03:31:00.029Z" data-timestamp="2026-09-14T03:31:00.029Z">2026-09-14T03:31:00.029Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/metrics.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-01-541Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-01-541Z" class="timestamp-link"><time datetime="2026-09-14T03:31:01.541Z" data-timestamp="2026-09-14T03:31:01.541Z">2026-09-14T03:31:01.541Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Ne8kvSFHsXG1jXs8BJr8oP">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Fast-forward main and create the test/engine-metrics branch</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git checkout -q main &amp;&amp; git pull -q --ff-only &amp;&amp; git checkout -q -b test/engine-metrics &amp;&amp; git log --oneline | head -2 &amp;&amp; git status --short &amp;&amp; grep -c clientTimeoutMs src/sim/types.ts</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-31-05-017Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-31-05-017Z" class="timestamp-link"><time datetime="2026-09-14T03:31:05.017Z" data-timestamp="2026-09-14T03:31:05.017Z">2026-09-14T03:31:05.017Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>7eab382 Merge pull request #2 from utsavjain0511/fix/client-timeout-bounds-inflight
+a83cf8b fix(sim): bound in-flight with a client timeout
+?? src/sim/metrics.test.ts
+1</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-10-741Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-10-741Z" class="timestamp-link"><time datetime="2026-09-14T03:31:10.741Z" data-timestamp="2026-09-14T03:31:10.741Z">2026-09-14T03:31:10.741Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-10-745Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-10-745Z" class="timestamp-link"><time datetime="2026-09-14T03:31:10.745Z" data-timestamp="2026-09-14T03:31:10.745Z">2026-09-14T03:31:10.745Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-23-397Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-23-397Z" class="timestamp-link"><time datetime="2026-09-14T03:31:23.397Z" data-timestamp="2026-09-14T03:31:23.397Z">2026-09-14T03:31:23.397Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_014dmoBxCpnfQ3AGPUxKgwfM">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Lint, build, test, commit, push branch, and open the PR</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error&#34; ; npm run build 2&gt;&amp;1 | grep -E &#34;error|✓ built&#34; &amp;&amp; npm test 2&gt;&amp;1 | grep -E &#34;Test Files|Tests |×&#34; &amp;&amp; git add src/sim/metrics.test.ts &amp;&amp; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+test(sim): explain each TickMetrics field with characterisation tests
+
+Covers the 1 s rate window, Little&#39;s-law in-flight, effective capacity and
+limit, latency (mean, p99, serviceTime events, oldest-in-flight fallback when
+nothing completes) and goodput/timeouts/availability including the clamp and
+the no-traffic case.
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; &amp;&amp; git -c credential.helper=&#39;!gh auth git-credential&#39; push -q -u origin test/engine-metrics 2&gt;&amp;1 | tail -1; gh pr create --title &#34;test(sim): explain each TickMetrics field with characterisation tests&#34; --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+Adds `src/sim/metrics.test.ts`: 17 tests that document what each `TickMetrics` field means and how `Simulation.metrics()` computes it — time/rates, in-flight/capacity/limit, latency, and goodput/timeouts/availability. No production code changes. Open `src/sim/metrics.test.ts` alongside `src/sim/engine.ts` `metrics()`.
+
+## Motivation
+
+Companion to the `rng.test.ts` characterisation tests: a reader (or reviewer) should be able to learn the metric semantics from the tests rather than reverse-engineering `metrics()`. Notable behaviours pinned down: rates are per-second even during the first second (window scaled, not padded); `admitted + rejected = offered`; in-flight follows Little&#39;s law below capacity; mean/p99 fall back to the oldest in-flight age when nothing completes (the invariant called out in CLAUDE.md); an SLA miss counts as timed out even though the server did the work; availability is `goodput / offered`, clamped to 1, and 1 when nothing is offered.
+
+One assertion was corrected while writing it: a 3× service-time event at 100 rps puts 60 requests in flight, over capacity 50, so latency climbs rather than tripling — the test now uses 50 rps so it measures the event alone.
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 49 tests pass (17 new)
+- [ ] Verified in the browser — not applicable, tests only
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; 2&gt;&amp;1 | tail -2</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-31-30-258Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-31-30-258Z" class="timestamp-link"><time datetime="2026-09-14T03:31:30.258Z" data-timestamp="2026-09-14T03:31:30.258Z">2026-09-14T03:31:30.258Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>✓ built in 72ms
+ Test Files  6 passed (6)
+      Tests  51 passed (51)
+remote: 
+https://github.com/utsavjain0511/adaptive-limits-simulator/pull/3</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-35-911Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-35-911Z" class="timestamp-link"><time datetime="2026-09-14T03:31:35.911Z" data-timestamp="2026-09-14T03:31:35.911Z">2026-09-14T03:31:35.911Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-35-916Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-35-916Z" class="timestamp-link"><time datetime="2026-09-14T03:31:35.916Z" data-timestamp="2026-09-14T03:31:35.916Z">2026-09-14T03:31:35.916Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>PR #3 is open with the gate passing (clean lint/build, 51/51 tests). I'll fix a discrepancy in the PR body where I mistakenly wrote "49 tests" instead of 51.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-40-077Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-40-077Z" class="timestamp-link"><time datetime="2026-09-14T03:31:40.077Z" data-timestamp="2026-09-14T03:31:40.077Z">2026-09-14T03:31:40.077Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CY9Kvk2AmGsXXtBAr3bRit">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Correct the test count in the PR body</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr edit 3 --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+Adds `src/sim/metrics.test.ts`: 17 tests that document what each `TickMetrics` field means and how `Simulation.metrics()` computes it — time/rates, in-flight/capacity/limit, latency, and goodput/timeouts/availability. No production code changes. Open `src/sim/metrics.test.ts` alongside `src/sim/engine.ts` `metrics()`.
+
+## Motivation
+
+Companion to the `rng.test.ts` characterisation tests: a reader (or reviewer) should be able to learn the metric semantics from the tests rather than reverse-engineering `metrics()`. Notable behaviours pinned down: rates are per-second even during the first second (window scaled, not padded); `admitted + rejected = offered`; in-flight follows Little&#39;s law below capacity; mean/p99 fall back to the oldest in-flight age when nothing completes (the invariant called out in CLAUDE.md); an SLA miss counts as timed out even though the server did the work; availability is `goodput / offered`, clamped to 1, and 1 when nothing is offered.
+
+One assertion was corrected while writing it: a 3× service-time event at 100 rps puts 60 requests in flight, over capacity 50, so latency climbs rather than tripling — the test now uses 50 rps so it measures the event alone.
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 51 tests pass (17 new)
+- [ ] Verified in the browser — not applicable, tests only
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; 2&gt;&amp;1 | tail -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-31-43-311Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-31-43-311Z" class="timestamp-link"><time datetime="2026-09-14T03:31:43.311Z" data-timestamp="2026-09-14T03:31:43.311Z">2026-09-14T03:31:43.311Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>https://github.com/utsavjain0511/adaptive-limits-simulator/pull/3</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-31-53-333Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-31-53-333Z" class="timestamp-link"><time datetime="2026-09-14T03:31:53.333Z" data-timestamp="2026-09-14T03:31:53.333Z">2026-09-14T03:31:53.333Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done — following the new CLAUDE.md workflow, this landed as a PR rather than a push to <code>main</code>:</p>
+<p><strong>PR #3:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/3 (branch <code>test/engine-metrics</code>, off the fresh <code>main</code> that includes your client-timeout merge). Lint and build clean, 51/51 tests.</p>
+<p><code>src/sim/metrics.test.ts</code> — 17 tests grouped by what they explain:</p>
+<ul>
+<li><strong>Time and rates</strong> — <code>tMs</code> advances one tick per step; rates are 1 s rolling averages; during the first second the shorter window is <em>scaled</em>, not padded, so <code>offeredRps</code> is already per-second after 10 ticks; <code>admitted + rejected = offered</code> exactly.</li>
+<li><strong>In-flight, capacity, limit</strong> — in-flight ≈ rps × service time (Little's law) below capacity; 0 when nothing is admitted; <code>capacity</code> is the <em>effective</em> value including events; <code>limit</code> is <code>null</code> without a controller and the number with one.</li>
+<li><strong>Latency</strong> — mean ≈ service time when not oversubscribed; p99 ≥ mean and ≤ the 1.3× jitter ceiling; a 3× service-time event triples the mean; and the invariant CLAUDE.md calls out — when nothing completes, mean and p99 report the oldest in-flight age (asserted with a one-slot, 100 s backend, where both equal ~2 s after 2 s).</li>
+<li><strong>Goodput, timeouts, availability</strong> — goodput ≈ offered and availability ≈ 1 when everything meets the SLA; an SLA of 100 ms against a 200 ms service time gives goodput 0 and <code>timedOutRps</code> ≈ offered (the server did the work, the client still failed); rejected requests count against availability (<code>goodput ÷ offered</code>); availability is clamped to 1 across 500 consecutive ticks; and no traffic ⇒ availability 1.</li>
+</ul>
+<p>One test taught me something while writing it: a 3× slowdown at 100 rps pushes 60 requests in flight — past capacity 50 — so latency climbs rather than tripling. The test uses 50 rps so it isolates the event; the PR body notes this.</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T03-34-16-726Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T03-34-16-726Z" class="timestamp-link"><time datetime="2026-09-14T03:34:16.726Z" data-timestamp="2026-09-14T03:34:16.726Z">2026-09-14T03:34:16.726Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>athere-is-a-c0883789d84c75da</task-id>
+<output-file>/private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/tasks/athere-is-a-c0883789d84c75da.output</output-file>
+<status>completed</status></p>
+<summary>Agent "There is a bug in availability metrics in engine.…" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Fixed availability so pending requests are not failures, with tests; landed as PR #4.</p>
+<p><strong>Change</strong> (<code>src/sim/engine.ts</code> <code>metrics()</code>, commit <code>fix/availability-pending</code>): <code>availability = good / (good + failed)</code>, where <code>failed</code> = timed out + rejected in the 1 s window plus in-flight requests already older than the SLA. Previously <code>min(1, good / offered)</code> treated every request still in flight as a failure — availability read 0% during the first second of any run. Late in-flight requests are counted as failed so a fully stalled backend reads 0% instead of 100% during the gap between its last completion and its clients abandoning.</p>
+<p><strong>Tests</strong> (<code>src/sim/metrics.test.ts</code>, +2, one reworded): pending-within-SLA ⇒ availability 1 with goodput 0; stalled backend with nothing completed ⇒ 0; rejections ⇒ <code>good ÷ (good + rejected + timed out)</code> and admit-none ⇒ 0. The <code>availability = goodput ÷ offered</code> assertion from PR #3 is replaced. No lesson scenario assertion changed. Lint clean, build clean, 53/53.</p>
+<p><strong>PR:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/4 — stacked on <code>test/engine-metrics</code> (PR #3) because the tests live in the file #3 adds. Merge #3 first; GitHub retargets #4 to <code>main</code> when that branch is deleted. Also added a RATIONALE bullet per CLAUDE.md. Branch left checked out: <code>fix/availability-pending</code>.</result>
+<usage><subagent_tokens>394693</subagent_tokens><tool_uses>8</tool_uses><duration_ms>141743</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-34-22-555Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-34-22-555Z" class="timestamp-link"><time datetime="2026-09-14T03:34:22.555Z" data-timestamp="2026-09-14T03:34:22.555Z">2026-09-14T03:34:22.555Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-34-23-678Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-34-23-678Z" class="timestamp-link"><time datetime="2026-09-14T03:34:23.678Z" data-timestamp="2026-09-14T03:34:23.678Z">2026-09-14T03:34:23.678Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The availability fork finished; the UI fork (matching A/B lines hiding the red run) is still running — I'll report when it lands. Let me verify the availability change before summarising it.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-34-25-369Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-34-25-369Z" class="timestamp-link"><time datetime="2026-09-14T03:34:25.369Z" data-timestamp="2026-09-14T03:34:25.369Z">2026-09-14T03:34:25.369Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01JdvsjWUyKap2bjk9gtw5Pg">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show the engine-side diff of PR 4</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr diff 4 2&gt;&amp;1 | grep -E &#34;^[+-]&#34; | grep -v &#34;^[+-]{3}&#34; | grep -E &#34;engine.ts|availability|failed|lateInflight|const |return&#34; | head -30</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-34-28-471Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-34-28-471Z" class="timestamp-link"><time datetime="2026-09-14T03:34:28.471Z" data-timestamp="2026-09-14T03:34:28.471Z">2026-09-14T03:34:28.471Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>+- **Availability = good ÷ (good + failed), and pending requests are not failures.** The first version used `good ÷ offered` over the 1 s window, which silently counted every request still in flight as a failure — availability read 0% during the first second of any run and dipped whenever latency approached the window. Now only timed-out, rejected, and abandoned requests fail, plus in-flight requests already older than the SLA (they can no longer succeed, and without them a fully stalled backend would read 100% until its clients gave up).
+--- a/src/sim/engine.ts
++++ b/src/sim/engine.ts
++    // Availability = good / (good + failed). Pending requests are not failures, but an in-flight request
++    // already older than the SLA can no longer succeed, so it counts as failed before it completes.
++    const lateInflight = this.inflight.filter((r) =&gt; this.nowMs - r.arrivedAt &gt; this.config.backend.slaMs).length;
++    const failed = sum(&#x27;timedOut&#x27;) + sum(&#x27;rejected&#x27;) + lateInflight;
+-      availability: offered ? Math.min(1, good / offered) : 1,
++      availability: good + failed &gt; 0 ? good / (good + failed) : 1,
+-  it(&#x27;rejected requests are not good responses, so availability = goodput ÷ offered&#x27;, () =&gt; {
++  it(&#x27;rejections are failures: availability = good ÷ (good + rejected + timed out)&#x27;, () =&gt; {
+-    expect(m.availability).toBeCloseTo(Math.min(1, m.goodputRps / m.offeredRps), 6);
++    expect(m.availability).toBeCloseTo(m.goodputRps / (m.goodputRps + m.rejectedRps + m.timedOutRps), 6);
++    expect(run(sim(100, admitNone), 3).availability).toBe(0);
+-  it(&#x27;availability is clamped to 1 (completions can briefly outnumber arrivals in a window)&#x27;, () =&gt; {
++  it(&#x27;pending requests are not failures: availability stays 1 while everything is still in flight within the SLA&#x27;, () =&gt; {
++    const slow: BackendConfig = { ...BACKEND, serviceTimeMs: 2500, slaMs: 3000 }; // fastest completion is 0.7 × 2.5 s = 1.75 s
++    const m = run(sim(10, admitAll, slow), 1.5); // nothing can have completed yet
++    expect(m.availability).toBe(1);
++  it(&#x27;an in-flight request already older than the SLA counts as failed before it completes&#x27;, () =&gt; {
++    const stalled: BackendConfig = { ...BACKEND, capacity: 1, serviceTimeMs: 100_000 };
++    const m = run(sim(10, admitAll, stalled), 3); // nothing completes; most of the backlog is past the 1 s SLA
++    expect(m.availability).toBe(0);
++  it(&#x27;availability never exceeds 1&#x27;, () =&gt; {</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-34-41-766Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-34-41-766Z" class="timestamp-link"><time datetime="2026-09-14T03:34:41.766Z" data-timestamp="2026-09-14T03:34:41.766Z">2026-09-14T03:34:41.766Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-34-41-775Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-34-41-775Z" class="timestamp-link"><time datetime="2026-09-14T03:34:41.775Z" data-timestamp="2026-09-14T03:34:41.775Z">2026-09-14T03:34:41.775Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The availability fix is in <strong>PR #4</strong> (https://github.com/utsavjain0511/adaptive-limits-simulator/pull/4), and I verified the diff matches what the fork reported:</p>
+<ul>
+<li><code>availability = good ÷ (good + failed)</code> where <code>failed</code> = timed-out + rejected in the 1 s window <strong>plus in-flight requests already older than the SLA</strong>. Requests still in flight and within the SLA are neither good nor failed, so they no longer drag availability down — the old <code>good ÷ offered</code> read 0% during the first second of every run and dipped whenever latency approached the window.</li>
+<li>The "older than SLA" term is a deliberate judgment call: without it a fully stalled backend would read 100% available between its last completion and its clients giving up. Tests cover both sides (pending-within-SLA ⇒ 1; stalled with nothing completed ⇒ 0), plus rejections and admit-none ⇒ 0. 53/53 green, RATIONALE bullet added.</li>
+<li><strong>Merge order:</strong> #4 is stacked on <code>test/engine-metrics</code> (#3) because its tests live in the file #3 adds. Merge #3 first; GitHub will retarget #4 to <code>main</code> once that branch is deleted.</li>
+</ul>
+<p>The second fork — making the red run visible when the A/B lines coincide — is still running; I'll report its PR when it finishes.</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T03-36-49-888Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T03-36-49-888Z" class="timestamp-link"><time datetime="2026-09-14T03:36:49.888Z" data-timestamp="2026-09-14T03:36:49.888Z">2026-09-14T03:36:49.888Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>aui-improvement-in-adb7294039ec1286</task-id>
+<output-file>/private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/tasks/aui-improvement-in-adb7294039ec1286.output</output-file>
+<status>completed</status></p>
+<summary>Agent "UI improvement, in the graphs, if the A/B are mat…" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Task: make overlapping A/B (and offered/admitted) chart lines visible when their values are identical, instead of the last-drawn teal line hiding the others.</p>
+<p>Done — <strong>PR #5:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/5 (branch <code>fix/chart-overlap-visibility</code>, commit <code>61fa750</code>, off <code>origin/main</code>; opened per the CLAUDE.md branch-per-task workflow, not merged).</p>
+<p>Changes:
+- <code>src/components/RollingChart.tsx</code> — after all series are drawn solid, any stretch where a later solid series exactly matches an earlier one is re-drawn in the hidden series' colour as short dashes on top (different dash phase per hidden series, so "offered = admitted A = admitted B" shows gray, red and teal). Coincident dashed limit lines get offset dash phases so they interleave instead of one covering the other.
+- <code>docs/RATIONALE.md</code> — one bullet recording the trade-off and the rejected alternatives (vertical offset misrepresents data; thinner top line reads as an artefact).</p>
+<p>Verification: lint clean, build clean, 34/34 tests; headless-Chromium screenshot of Lesson 1 at 10 s shows red/gray dashes across the shared stretch on the RPS, in-flight and goodput charts, with clean separate lines after the runs diverge.</p>
+<p>Out of scope, noted only: the main working tree is now on <code>fix/availability-pending</code> with <code>metrics.test.ts</code> edits from the availability-bug fork; I worked in an isolated worktree (since removed) so nothing there was touched.</result>
+<usage><subagent_tokens>404003</subagent_tokens><tool_uses>211</tool_uses><duration_ms>182967</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-36-52-663Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-36-52-663Z" class="timestamp-link"><time datetime="2026-09-14T03:36:52.663Z" data-timestamp="2026-09-14T03:36:52.663Z">2026-09-14T03:36:52.663Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-36-53-165Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-36-53-165Z" class="timestamp-link"><time datetime="2026-09-14T03:36:53.165Z" data-timestamp="2026-09-14T03:36:53.165Z">2026-09-14T03:36:53.165Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The chart-overlap fork finished with PR #5. Let me review its diff before reporting.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-36-54-487Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-36-54-487Z" class="timestamp-link"><time datetime="2026-09-14T03:36:54.487Z" data-timestamp="2026-09-14T03:36:54.487Z">2026-09-14T03:36:54.487Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01DnEnAvZAPsiHxyxCv4tGWF">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show the RollingChart diff from PR 5</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr diff 5 -- 2&gt;&amp;1 | sed -n &#39;/RollingChart.tsx/,/RATIONALE/p&#39; | head -90</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T03-36-56-830Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T03-36-56-830Z" class="timestamp-link"><time datetime="2026-09-14T03:36:56.830Z" data-timestamp="2026-09-14T03:36:56.830Z">2026-09-14T03:36:56.830Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>diff --git a/src/components/RollingChart.tsx b/src/components/RollingChart.tsx
+index e3a46bf..624313f 100644
+--- a/src/components/RollingChart.tsx
++++ b/src/components/RollingChart.tsx
+@@ -93,12 +93,13 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Serie
+     ctx.restore();
+   }
+ 
+-  for (const s of series) {
++  series.forEach((s, k) =&gt; {
+     const n = s.data.length;
+-    if (n === 0) continue;
++    if (n === 0) return;
+     ctx.save();
+     ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+-    if (s.dashed) ctx.setLineDash([5, 4]);
++    // Coincident dashed lines (e.g. a limit sitting exactly on capacity) interleave instead of hiding each other.
++    if (s.dashed) { ctx.setLineDash([5, 4]); ctx.lineDashOffset = (k % 3) * 3; }
+     ctx.beginPath();
+     let pen = false;
+     for (let i = 0; i &lt; n; i++) {
+@@ -108,5 +109,34 @@ function draw(ctx: CanvasRenderingContext2D, w: number, h: number, series: Serie
+     }
+     ctx.stroke();
+     ctx.restore();
++  });
++
++  // Where a later solid series exactly matches an earlier one it would hide it completely (both runs behave
++  // identically until they diverge), so re-draw the hidden series&#x27; colour as dashes on top of that stretch.
++  for (let a = 1; a &lt; series.length; a++) {
++    const top = series[a];
++    if (top.dashed) continue;
++    for (let b = 0; b &lt; a; b++) {
++      const under = series[b];
++      if (under.dashed || under.color === top.color || under.data.length !== top.data.length) continue;
++      drawOverlap(ctx, top, under, b, x, y);
++    }
++  }
++}
++
++function drawOverlap(ctx: CanvasRenderingContext2D, top: Series, under: Series, phase: number, x: (i: number, n: number) =&gt; number, y: (v: number) =&gt; number) {
++  const n = top.data.length;
++  ctx.save();
++  ctx.strokeStyle = under.color; ctx.lineWidth = 2;
++  ctx.setLineDash([4, 8]); ctx.lineDashOffset = phase * 4;
++  ctx.beginPath();
++  let pen = false;
++  for (let i = 0; i &lt; n; i++) {
++    const t = top.data[i], u = under.data[i];
++    const same = t != null &amp;&amp; u != null &amp;&amp; Math.abs(t - u) &lt;= 1e-6 * Math.max(1, Math.abs(t));
++    if (!same) { pen = false; continue; }
++    if (!pen) { ctx.moveTo(x(i, n), y(t)); pen = true; } else ctx.lineTo(x(i, n), y(t));
+   }
++  ctx.stroke();
++  ctx.restore();
+ }</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-37-09-718Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-37-09-718Z" class="timestamp-link"><time datetime="2026-09-14T03:37:09.718Z" data-timestamp="2026-09-14T03:37:09.718Z">2026-09-14T03:37:09.718Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T03-37-09-728Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T03-37-09-728Z" class="timestamp-link"><time datetime="2026-09-14T03:37:09.728Z" data-timestamp="2026-09-14T03:37:09.728Z">2026-09-14T03:37:09.728Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Reviewed — PR #5's approach is sound and minimal:</p>
+<p><strong>PR #5:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/5 (<code>fix/chart-overlap-visibility</code>, off <code>main</code>, independent of #3/#4)</p>
+<ul>
+<li><code>RollingChart.tsx</code>: after all series are drawn, any stretch where a later solid line exactly matches an earlier one (both runs are bit-identical until they diverge, thanks to the shared seed) is redrawn on top as short dashes in the hidden series' colour, with a different dash phase per hidden series — so "offered = admitted A = admitted B" shows gray, red <em>and</em> teal, and the red run is visible in Lesson 1 before shedding kicks in. Coincident dashed limit/capacity lines get offset dash phases so they interleave instead of one covering the other.</li>
+<li>It only decorates exact matches, so once the runs diverge you get the normal clean lines; nothing is offset vertically (which would misrepresent the data — the rejected alternative is recorded in RATIONALE).</li>
+<li>Lint/build clean, tests green, and the fork verified with a headless screenshot at 10 s into Lesson 1.</li>
+</ul>
+<p>Merge order across the three open PRs: <strong>#3 → #4</strong> (stacked), and <strong>#5</strong> whenever — it touches only <code>RollingChart.tsx</code>, so it won't conflict with the other two.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="/transcripts/index.html" class="index-link">Index</a>
+<a href="/transcripts/page-004.html">&larr; Prev</a>
+<a href="/transcripts/page-001.html">1</a>
+<a href="/transcripts/page-002.html">2</a>
+<a href="/transcripts/page-003.html">3</a>
+<a href="/transcripts/page-004.html">4</a>
+<span class="current">5</span>
+<a href="/transcripts/page-006.html">6</a>
+<a href="/transcripts/page-007.html">7</a>
+<a href="/transcripts/page-008.html">8</a>
+<a href="/transcripts/page-009.html">9</a>
+<a href="/transcripts/page-010.html">10</a>
+<a href="/transcripts/page-011.html">11</a>
+<a href="/transcripts/page-012.html">12</a>
+<a href="/transcripts/page-006.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -14,6 +14,10 @@ export function Sidebar({ titles, index, collapsed, onChange, onToggle }: Props)
           </li>
         ))}
       </ol>
+      <a className="transcripts" href="/transcripts/index.html" title="Build transcripts">
+        <span className="num">✎</span>
+        <span className="name">Build transcripts</span>
+      </a>
       <button className="collapse" onClick={onToggle} aria-label={collapsed ? 'Expand lesson list' : 'Collapse lesson list'}>
         {collapsed ? '›' : '‹'}
       </button>

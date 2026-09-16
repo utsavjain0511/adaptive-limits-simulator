@@ -28,6 +28,11 @@ button { cursor: pointer; }
 .lessons .num { font-variant-numeric: tabular-nums; width: 1.2em; flex: none; }
 .collapsed .lessons .name { display: none; }
 .collapsed .lessons button { justify-content: center; padding-left: 0; padding-right: 3px; }
+.transcripts { display: flex; gap: 12px; align-items: baseline; padding: 10px 20px 10px 20px; color: var(--muted); text-decoration: none; font-size: 13px; }
+.transcripts:hover { color: var(--ink); }
+.transcripts .num { width: 1.2em; flex: none; }
+.collapsed .transcripts .name { display: none; }
+.collapsed .transcripts { justify-content: center; padding-left: 0; padding-right: 3px; }
 .collapse { align-self: flex-end; margin: 0 12px; width: 28px; height: 28px; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; line-height: 1; }
 .collapsed .collapse { align-self: center; margin: 0; }
 

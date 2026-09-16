@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 10</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 10/12</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-009.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<span class="current">10</span>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-011.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-14T22-57-08-417Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T22-57-08-417Z" class="timestamp-link"><time datetime="2026-09-14T22:57:08.417Z" data-timestamp="2026-09-14T22:57:08.417Z">2026-09-14T22:57:08.417Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+<div class="message user" id="msg-2026-09-14T22-57-08-408Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T22-57-08-408Z" class="timestamp-link"><time datetime="2026-09-14T22:57:08.408Z" data-timestamp="2026-09-14T22:57:08.408Z">2026-09-14T22:57:08.408Z</time></a></div><div class="message-content">
+<div class="user-content"><p>/code-review medium 8</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T23-00-39-981Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T23-00-39-981Z" class="timestamp-link"><time datetime="2026-09-14T23:00:39.981Z" data-timestamp="2026-09-14T23:00:39.981Z">2026-09-14T23:00:39.981Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>a4e09aa36bf9a292d</task-id>
+<output-file>/private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/tasks/a4e09aa36bf9a292d.output</output-file>
+<status>completed</status></p>
+<summary>Agent "/code-review medium 8" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Review of PR #8 (<code>feat/adaptive-utilisation-guard</code>, 4 files, +74/−13). I ran the angles inline rather than spawning eight agents: the production change is 11 lines in one method, and empirical probing of the simulator was more informative than parallel readers. Verified on a scratch worktree: <code>npm run lint</code>, <code>npm run build</code>, and all 62 tests pass; I also ran the limiter through light-load trajectories across seeds 1–5 for 10 simulated minutes to check the PR's central claim.</p>
+<pre><code class="language-json">[
+  {
+    &quot;file&quot;: &quot;src/sim/adaptive.test.ts&quot;,
+    &quot;line&quot;: 87,
+    &quot;summary&quot;: &quot;The light-load scenario assertion `limit &amp;lt;= initialLimit` after 60 s has no margin: the peak-based guard still lets the limit creep upward under light load, and the test only passes because seed 1 happens not to cross 50 by 60 s.&quot;,
+    &quot;failure_scenario&quot;: &quot;Same test with seed 4 gives limit 52 at 60 s (seeds 1–5 reach 54–60 by 600 s for both AIMD and Gradient). A single Poisson burst in one 500 ms window with in-flight &amp;gt;= limit/2 unlocks a step, and growth is one-way, so the limit ratchets slowly rather than holding; any preset/backend tuning change or seed change flips this scenario test red, and the comment 'nothing justifies raising it' plus the RATIONALE bullet overstate the guard. Sturdier options: gate on mean/median in-flight over the window instead of the single peak, or require utilisation for N consecutive windows.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;src/sim/adaptive.ts&quot;,
+    &quot;line&quot;: 35,
+    &quot;summary&quot;: &quot;peakInflight records the pre-admission count the engine passes to shouldAdmit, so it understates the true peak by one and the effective threshold is (limit+2)/2, not limit/2.&quot;,
+    &quot;failure_scenario&quot;: &quot;engine.ts:50 calls `ctrl.shouldAdmit(this.inflight.length, ...)` before pushing the request. With limit 10 and five requests admitted in a window, the limiter sees 0..4, records peak 4, and `4*2 &amp;gt;= 10` is false, so a window that genuinely had half the limit in flight is treated as under-used. The unit test passes 5 directly and so never exercises this path. Fix: `const admit = inflight &amp;lt; this.limit; this.peakInflight = Math.max(this.peakInflight, admit ? inflight + 1 : inflight);`.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;src/sim/adaptive.test.ts&quot;,
+    &quot;line&quot;: 79,
+    &quot;summary&quot;: &quot;The `[name, make]` Stable-preset table is copy-pasted from the 'lesson 4 scenario' describe block instead of being hoisted to a shared const.&quot;,
+    &quot;failure_scenario&quot;: &quot;Two identical tables (lines 79-82 and 95-98) must be edited together when a preset name or constructor changes; hoist to `const STABLE = [['AIMD', () =&amp;gt; new AimdLimiter(AIMD_PRESETS.stable)], ['Gradient', () =&amp;gt; new GradientLimiter(GRADIENT_PRESETS.stable)]] as const;` and iterate it in both blocks.&quot;
+  }
+]
+</code></pre>
+<p>Notes outside the findings cap:</p>
+<ul>
+<li>Refuted candidates: the guard is placed at the right altitude (shared <code>WindowedLimiter</code>, not per-subclass); <code>peakInflight</code> is reset even on sample-less windows; backoff is correctly unconditional; recovery from a light-load slowdown event is not stranded (limit backs off to ~5, then climbs back past demand in ~6 s); <code>baseline.push</code> still runs on held windows, which is correct.</li>
+<li>Conventions: repo <code>CLAUDE.md</code> says "run the <code>/code-review</code> skill on the branch's changes and fix what it flags before pushing"; the PR body states this was not done. This review fulfils that step, so no diff-line violation is recorded.</result>
+<usage><subagent_tokens>67113</subagent_tokens><tool_uses>15</tool_uses><duration_ms>209388</duration_ms></usage>
+</task-notification></li>
+</ul></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-00-55-544Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-00-55-544Z" class="timestamp-link"><time datetime="2026-09-14T23:00:55.544Z" data-timestamp="2026-09-14T23:00:55.544Z">2026-09-14T23:00:55.544Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-01-01-924Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-01-01-924Z" class="timestamp-link"><time datetime="2026-09-14T23:01:01.924Z" data-timestamp="2026-09-14T23:01:01.924Z">2026-09-14T23:01:01.924Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The medium review of PR #8 found three things; I've checked them and all three hold up.</p>
+<ol>
+<li><strong>The guard leaks under light load</strong> (real, and the important one). Gating on the <em>peak</em> in-flight of a 500 ms window means one Poisson burst that touches limit/2 unlocks a growth step, and growth is one-way — so the limit still creeps (seeds 1–5 reach 54–60 within 10 min at 60 rps; the new scenario test passes only because seed 1 hasn't crossed 50 by 60 s). The fix I'd recommend: gate on the <strong>mean</strong> in-flight seen across the window's <code>shouldAdmit</code> calls instead of the peak. Poisson arrivals see time averages (PASTA), so that mean is an unbiased estimate of true utilisation — ~12 at 60 rps, never near 25 — while under saturation it sits at the limit and growth proceeds as before. The alternative (require N consecutive utilised windows) works too but adds a tunable.</li>
+<li><strong>Off-by-one</strong>: <code>shouldAdmit</code> receives the <em>pre-admission</em> count, so the recorded value understates in-flight by one for admitted requests; effective threshold is (limit+2)/2. Fix: sample <code>inflight + 1</code> when admitting.</li>
+<li>Hoist the duplicated Stable-preset table in the tests to one <code>const</code>.</li>
+</ol></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-01-06-177Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-01-06-177Z" class="timestamp-link"><time datetime="2026-09-14T23:01:06.177Z" data-timestamp="2026-09-14T23:01:06.177Z">2026-09-14T23:01:06.177Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01C7PVxwYvGrsD1KFpJrPgjw"><div class="tool-header"><span class="tool-icon">⚙</span> AskUserQuestion</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;questions&#34;: [
+    {
+      &#34;question&#34;: &#34;How should the utilisation guard on PR #8 be tightened?&#34;,
+      &#34;header&#34;: &#34;Guard signal&#34;,
+      &#34;multiSelect&#34;: false,
+      &#34;options&#34;: [
+        {
+          &#34;label&#34;: &#34;Mean in-flight over the window (Recommended)&#34;,
+          &#34;description&#34;: &#34;Grow only if the average in-flight seen at admission attempts is &gt;= limit/2. Unbiased under Poisson arrivals, no new tunable, single bursts can&#39;t unlock growth. Plus the off-by-one fix and the test hoist, pushed as a second commit on PR #8.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Peak, but N consecutive utilised windows&#34;,
+          &#34;description&#34;: &#34;Keep the peak signal and require e.g. 3 windows in a row before growing. Filters single bursts; adds a knob to choose and explain.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Keep peak as is, only fix off-by-one and hoist&#34;,
+          &#34;description&#34;: &#34;Accept slow creep under light load; widen the scenario assertion&#39;s margin so it isn&#39;t seed-dependent.&#34;
+        }
+      ]
+    }
+  ]
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-03-13-078Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-03-13-078Z" class="timestamp-link"><time datetime="2026-09-14T23:03:13.078Z" data-timestamp="2026-09-14T23:03:13.078Z">2026-09-14T23:03:13.078Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Your questions have been answered: &quot;How should the utilisation guard on PR #8 be tightened?&quot;=&quot;Mean in-flight over the window (Recommended)&quot;. You can now continue with these answers in mind.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-03-15-613Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-03-15-613Z" class="timestamp-link"><time datetime="2026-09-14T23:03:15.613Z" data-timestamp="2026-09-14T23:03:15.613Z">2026-09-14T23:03:15.613Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-03-17-110Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-03-17-110Z" class="timestamp-link"><time datetime="2026-09-14T23:03:17.110Z" data-timestamp="2026-09-14T23:03:17.110Z">2026-09-14T23:03:17.110Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012ZKCu4uw5eFfWdaVJWDkNL">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Switch to the PR 8 branch after confirming the tree is clean</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status --short &amp;&amp; git checkout -q feat/adaptive-utilisation-guard &amp;&amp; git pull -q --ff-only 2&gt;&amp;1 | tail -1; git branch --show-current &amp;&amp; git log --oneline | head -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-03-18-358Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-03-18-358Z" class="timestamp-link"><time datetime="2026-09-14T23:03:18.358Z" data-timestamp="2026-09-14T23:03:18.358Z">2026-09-14T23:03:18.358Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BfwMfQ9p3YX7TVbmWVc4zA"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts&#34;,
+  &#34;offset&#34;: 22,
+  &#34;limit&#34;: 32
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-03-19-115Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-03-19-115Z" class="timestamp-link"><time datetime="2026-09-14T23:03:19.115Z" data-timestamp="2026-09-14T23:03:19.115Z">2026-09-14T23:03:19.115Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01SBTY9Nisnonzz3xQ9dDAvA"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-03-20-287Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-03-20-287Z" class="timestamp-link"><time datetime="2026-09-14T23:03:20.287Z" data-timestamp="2026-09-14T23:03:20.287Z">2026-09-14T23:03:20.287Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01KzRwhe1v35uVzfqRQY73tr">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find the RATIONALE and Lesson 4 text that describe the guard</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;utilis\|peak\|in flight\|in-flight&#34; docs/RATIONALE.md src/lessons/Lesson4.tsx | head</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-03-32-257Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-03-32-257Z" class="timestamp-link"><time datetime="2026-09-14T23:03:32.257Z" data-timestamp="2026-09-14T23:03:32.257Z">2026-09-14T23:03:32.257Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>feat/adaptive-utilisation-guard
+1ef5655 feat(sim): only grow an adaptive limit when at least half of it was in use</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-03-32-267Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-03-32-267Z" class="timestamp-link"><time datetime="2026-09-14T23:03:32.267Z" data-timestamp="2026-09-14T23:03:32.267Z">2026-09-14T23:03:32.267Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>22	abstract class WindowedLimiter implements AdmissionController {
+23	  abstract readonly name: string;
+24	  protected limit: number;
+25	  private samples: number[] = [];
+26	  private peakInflight = 0;
+27	  private windowEndsAt: number;
+28	  private readonly baseline = new BaselineTracker();
+29	
+30	  constructor(private readonly bounds: AdaptiveBounds) {
+31	    this.limit = bounds.initialLimit;
+32	    this.windowEndsAt = bounds.windowMs;
+33	  }
+34	  shouldAdmit(inflight: number): boolean {
+35	    this.peakInflight = Math.max(this.peakInflight, inflight);
+36	    return inflight &lt; this.limit;
+37	  }
+38	  onComplete(latencyMs: number): void { this.samples.push(latencyMs); }
+39	  onTick(nowMs: number): void {
+40	    if (nowMs &lt; this.windowEndsAt) return;
+41	    this.windowEndsAt = nowMs + this.bounds.windowMs;
+42	    // Healthy latency only justifies a higher limit if the current one was actually being used; a lightly
+43	    // loaded service must not ratchet its limit up to the maximum and then have no headroom to shed with.
+44	    const utilised = this.peakInflight * 2 &gt;= this.limit;
+45	    this.peakInflight = 0;
+46	    if (this.samples.length === 0) return;
+47	    const avg = this.samples.reduce((a, b) =&gt; a + b, 0) / this.samples.length;
+48	    this.samples = [];
+49	    const next = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
+50	    if (next &lt; this.limit || utilised) this.limit = next;
+51	  }
+52	  currentLimit(): number { return Math.floor(this.limit); }
+53	  protected abstract update(windowAvgMs: number, baselineMs: number): number;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-03-32-268Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-03-32-268Z" class="timestamp-link"><time datetime="2026-09-14T23:03:32.268Z" data-timestamp="2026-09-14T23:03:32.268Z">2026-09-14T23:03:32.268Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import { describe, it, expect } from &#x27;vitest&#x27;;
+2	import { AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS } from &#x27;./adaptive&#x27;;
+3	import { ConcurrencyLimiter } from &#x27;./controllers&#x27;;
+4	import { Simulation, DT_MS } from &#x27;./engine&#x27;;
+5	import { CAPACITY_DROP, DEFAULT_BACKEND } from &#x27;./scenario&#x27;;
+6	import type { AdmissionController, TickMetrics } from &#x27;./types&#x27;;
+7	
+8	// The lesson&#x27;s own backend and event, so the scenario follows the lesson if either is retuned.
+9	const BACKEND = DEFAULT_BACKEND;
+10	const DROP = CAPACITY_DROP;
+11	const load = { kind: &#x27;sustained&#x27; as const, baseRps: 300, peakRps: 300 };
+12	function run(sim: Simulation, seconds: number): TickMetrics {
+13	  let m!: TickMetrics;
+14	  for (let i = 0; i &lt; (seconds * 1000) / DT_MS; i++) m = sim.step();
+15	  return m;
+16	}
+17	const mk = (c: AdmissionController) =&gt; new Simulation({ backend: BACKEND, load, controller: c, seed: 1 });
+18	
+19	// A window&#x27;s completions, all at one latency; `inflight` is what the limiter saw in flight during it.
+20	function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number): void {
+21	  c.shouldAdmit(inflight, fromMs);
+22	  for (let i = 0; i &lt; 20; i++) c.onComplete(latencyMs, fromMs + i * 5);
+23	  c.onTick(fromMs + 100, 20);
+24	}
+25	
+26	describe(&#x27;AimdLimiter&#x27;, () =&gt; {
+27	  it(&#x27;grows additively while latency is healthy and the limit is in use, and backs off multiplicatively when not healthy&#x27;, () =&gt; {
+28	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+29	    window(c, 5, 200, 0); // 5 in flight = half of 10: utilised
+30	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+31	    window(c, 12, 2000, 100);
+32	    expect(c.currentLimit()).toBe(Math.floor((10 + AIMD_PRESETS.stable.increaseStep) * AIMD_PRESETS.stable.backoffRatio));
+33	  });
+34	});
+35	
+36	describe(&#x27;GradientLimiter&#x27;, () =&gt; {
+37	  it(&#x27;adds headroom when uncongested and the limit is in use, and shrinks when latency exceeds tolerance&#x27;, () =&gt; {
+38	    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+39	    window(c, 10, 200, 0); // 10 in flight = half of 20: utilised
+40	    expect(c.currentLimit()).toBe(20 + GRADIENT_PRESETS.stable.headroom);
+41	    window(c, 24, 2000, 100);
+42	    expect(c.currentLimit()).toBeLessThan(20 + GRADIENT_PRESETS.stable.headroom);
+43	  });
+44	});
+45	
+46	describe(&#x27;utilisation guard: the limit only grows when at least half of it was in use&#x27;, () =&gt; {
+47	  it(&#x27;AIMD holds its limit through a healthy but under-used window&#x27;, () =&gt; {
+48	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+49	    window(c, 4, 200, 0); // 4 &lt; 10 / 2
+50	    expect(c.currentLimit()).toBe(10);
+51	    window(c, 5, 200, 100);
+52	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+53	  });
+54	
+55	  it(&#x27;Gradient holds its limit through a healthy but under-used window&#x27;, () =&gt; {
+56	    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+57	    window(c, 9, 200, 0); // 9 &lt; 20 / 2
+58	    expect(c.currentLimit()).toBe(20);
+59	  });
+60	
+61	  it(&#x27;still backs off under congestion when under-used (the guard gates growth only)&#x27;, () =&gt; {
+62	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+63	    window(c, 1, 200, 0);  // establishes the 200 ms baseline; under-used, so no growth
+64	    expect(c.currentLimit()).toBe(10);
+65	    window(c, 1, 2000, 100); // congested and still under-used: backoff applies regardless
+66	    expect(c.currentLimit()).toBe(Math.floor(10 * AIMD_PRESETS.stable.backoffRatio));
+67	  });
+68	
+69	  it(&#x27;uses the peak in-flight seen during the window, so a burst inside an otherwise quiet window counts&#x27;, () =&gt; {
+70	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+71	    c.shouldAdmit(1, 0);
+72	    c.shouldAdmit(7, 10);
+73	    c.shouldAdmit(2, 20);
+74	    for (let i = 0; i &lt; 20; i++) c.onComplete(200, i * 5);
+75	    c.onTick(100, 20);
+76	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+77	  });
+78	
+79	  for (const [name, make] of [
+80	    [&#x27;AIMD&#x27;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+81	    [&#x27;Gradient&#x27;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+82	  ] as const) {
+83	    it(`${name} Stable does not ratchet toward maxLimit on a lightly loaded backend, but still probes upward when saturated`, () =&gt; {
+84	      // 60 rps on a 50-worker backend keeps ~12 in flight: under half the initial limit of 50, so nothing
+85	      // justifies raising it. Before the guard the limit climbed to maxLimit and sat there.
+86	      const light = new Simulation({ backend: BACKEND, load: { kind: &#x27;sustained&#x27;, baseRps: 60, peakRps: 60 }, controller: make(), seed: 1 });
+87	      expect(run(light, 60).limit).toBeLessThanOrEqual(AIMD_PRESETS.stable.initialLimit);
+88	      const saturated = mk(make()); // 300 rps &gt; capacity: in flight sits at the limit, so it may grow
+89	      expect(run(saturated, 10).limit).toBeGreaterThan(AIMD_PRESETS.stable.initialLimit);
+90	    });
+91	  }
+92	});
+93	
+94	describe(&#x27;lesson 4 scenario: capacity drop&#x27;, () =&gt; {
+95	  for (const [name, make] of [
+96	    [&#x27;AIMD&#x27;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+97	    [&#x27;Gradient&#x27;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+98	  ] as const) {
+99	    it(`${name} backs off within seconds of the drop and is under the SLA with goodput by its end, where static 50 is not`, () =&gt; {
+100	      const a = mk(new ConcurrencyLimiter(50)), b = mk(make());
+101	      run(a, 10); run(b, 10);
+102	      a.triggerEvent(DROP); b.triggerEvent(DROP);
+103	      // Backing off from ~60 to ~12 in flight takes a few windows, so the first seconds of the drop are over
+104	      // the SLA for the adaptive run too; from t+5 s on it must be delivering every second.
+105	      run(a, 5); run(b, 5);
+106	      for (let s = 0; s &lt; 3; s++) {
+107	        const ma = run(a, 1), mb = run(b, 1);
+108	        expect(ma.availability).toBeLessThan(0.05);
+109	        expect(mb.goodputRps).toBeGreaterThan(20);
+110	      }
+111	      const mb = run(b, 0.02); // one tick: the state at the end of the 8 s sampled window
+112	      expect(mb.limit!).toBeLessThan(35);
+113	      expect(mb.p99LatencyMs).toBeLessThan(BACKEND.slaMs);
+114	      expect(mb.goodputRps).toBeGreaterThan(30);
+115	      const after = run(b, 15);
+116	      expect(after.limit!).toBeGreaterThan(40); // recovers toward capacity
+117	    });
+118	  }
+119	});
+120	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-03-32-286Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-03-32-286Z" class="timestamp-link"><time datetime="2026-09-14T23:03:32.286Z" data-timestamp="2026-09-14T23:03:32.286Z">2026-09-14T23:03:32.286Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>src/lessons/Lesson4.tsx:25:    load: { kind: &#x27;sustained&#x27;, baseRps: 300, peakRps: 300 },
+src/lessons/Lesson4.tsx:52:        &#x27;Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts — AIMD swings between a handful and ~70 in flight, Gradient over-shrinks and parks at its floor. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.&#x27;,
+docs/RATIONALE.md:21:- **Clients abandon requests after `clientTimeoutMs` (10 s by default).** Without it the no-limit run&#x27;s in-flight list grows forever under overload, so a long-running tab gets slower every tick and eventually runs out of memory. A client timeout bounds in-flight at offered rate × timeout (Little&#x27;s law) inside the engine, deterministically, rather than pausing the UI after some wall-clock interval. It is also what a real meltdown looks like: latency pins at the timeout, goodput stays at zero. Abandoned requests are reported to the controller as completions at the timeout latency, which is the signal a real adaptive limiter gets from a timed-out call. A hard in-flight cap was rejected because dropping arrivals is itself an admission policy and would muddy &quot;no limit&quot;.
+docs/RATIONALE.md:22:- **Availability = good ÷ (good + failed), and pending requests are not failures.** The first version used `good ÷ offered` over the 1 s window, which silently counted every request still in flight as a failure — availability read 0% during the first second of any run and dipped whenever latency approached the window. Now only timed-out, rejected, and abandoned requests fail, plus in-flight requests already older than the SLA (they can no longer succeed, and without them a fully stalled backend would read 100% until its clients gave up).
+docs/RATIONALE.md:23:- **p99 reports the age of the oldest in-flight request when nothing completes.** A fully stalled backend completes nothing in the sampling window, so a naive p99 would read 0 — the opposite of the truth. Found via a failing test.
+docs/RATIONALE.md:25:- **An adaptive limit only grows if at least half of it was in use during the window.** Healthy latency on its own is not evidence that a higher limit is safe — a lightly loaded backend reports healthy latency at any limit — so without this guard both AIMD and Gradient ratcheted to `maxLimit` in steady state and would have no headroom to shed with when load arrived. The guard uses the peak in-flight seen during the window (the same &quot;app-limited&quot; rule as Netflix&#x27;s concurrency-limits) and gates growth only; backoff under congestion still applies. It does not address the separate baseline drift under *saturating* load, where in-flight sits at the limit and growth is legitimately allowed.
+docs/RATIONALE.md:29:- **The flow animation is driven by the same metrics as the charts, not by individual simulated requests.** Dots spawn at `offered / 25` per second, are admitted with probability `admitted / offered`, and dwell in the backend for the mean latency (capped at 3 s, 150 dots per lane) — a stalled backend visibly fills up while its rejected neighbour streams through. Same-seed fairness is preserved because the animation only *reads* the runs. Mean latency needed the same &quot;oldest in-flight age&quot; fallback as p99: a stalled backend reported 0 ms and the dots flew straight through.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-06-055Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-06-055Z" class="timestamp-link"><time datetime="2026-09-14T23:04:06.055Z" data-timestamp="2026-09-14T23:04:06.055Z">2026-09-14T23:04:06.055Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-06-061Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-06-061Z" class="timestamp-link"><time datetime="2026-09-14T23:04:06.061Z" data-timestamp="2026-09-14T23:04:06.061Z">2026-09-14T23:04:06.061Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Applying the fix: switching to mean in-flight (post-admission) instead of peak, correcting the test helper's off-by-one, updating the burst test to reflect that a burst shouldn't count, and adding a light-load assertion that the limit stays exactly 50 for 120s across two seeds including the reviewer's failing seed 4—plus hoisting the preset table.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-06-672Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-06-672Z" class="timestamp-link"><time datetime="2026-09-14T23:04:06.672Z" data-timestamp="2026-09-14T23:04:06.672Z">2026-09-14T23:04:06.672Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01TUfCQdR4Su1R1c7eHkqRVA">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  private samples: number[] = [];
+  private peakInflight = 0;
+  private windowEndsAt: number;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  private samples: number[] = [];
+  private inflightSum = 0;
+  private inflightSamples = 0;
+  private windowEndsAt: number;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-04-06-727Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-04-06-727Z" class="timestamp-link"><time datetime="2026-09-14T23:04:06.727Z" data-timestamp="2026-09-14T23:04:06.727Z">2026-09-14T23:04:06.727Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-09-299Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-09-299Z" class="timestamp-link"><time datetime="2026-09-14T23:04:09.299Z" data-timestamp="2026-09-14T23:04:09.299Z">2026-09-14T23:04:09.299Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01XgVLzqoyvTkqVSXPdxbsHb">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  shouldAdmit(inflight: number): boolean {
+    this.peakInflight = Math.max(this.peakInflight, inflight);
+    return inflight &lt; this.limit;
+  }</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  shouldAdmit(inflight: number): boolean {
+    const admit = inflight &lt; this.limit;
+    // `inflight` is the count before this request; sample what it will be once admitted.
+    this.inflightSum += admit ? inflight + 1 : inflight;
+    this.inflightSamples++;
+    return admit;
+  }</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-04-09-330Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-04-09-330Z" class="timestamp-link"><time datetime="2026-09-14T23:04:09.330Z" data-timestamp="2026-09-14T23:04:09.330Z">2026-09-14T23:04:09.330Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-13-617Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-13-617Z" class="timestamp-link"><time datetime="2026-09-14T23:04:13.617Z" data-timestamp="2026-09-14T23:04:13.617Z">2026-09-14T23:04:13.617Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_019VaZA16h2AstNfPAAQpXXJ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    // Healthy latency only justifies a higher limit if the current one was actually being used; a lightly
+    // loaded service must not ratchet its limit up to the maximum and then have no headroom to shed with.
+    const utilised = this.peakInflight * 2 &gt;= this.limit;
+    this.peakInflight = 0;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    // Healthy latency only justifies a higher limit if the current one was actually being used; a lightly
+    // loaded service must not ratchet its limit up to the maximum and then have no headroom to shed with.
+    // The mean in-flight seen at arrivals is used rather than the peak: Poisson arrivals see time averages,
+    // and a single burst must not unlock a one-way growth step.
+    const meanInflight = this.inflightSamples ? this.inflightSum / this.inflightSamples : 0;
+    const utilised = meanInflight * 2 &gt;= this.limit;
+    this.inflightSum = 0;
+    this.inflightSamples = 0;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-04-13-640Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-04-13-640Z" class="timestamp-link"><time datetime="2026-09-14T23:04:13.640Z" data-timestamp="2026-09-14T23:04:13.640Z">2026-09-14T23:04:13.640Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-50-876Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-50-876Z" class="timestamp-link"><time datetime="2026-09-14T23:04:50.876Z" data-timestamp="2026-09-14T23:04:50.876Z">2026-09-14T23:04:50.876Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Eoom2EZyEtVnxbcmtxZ5PY">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">const mk = (c: AdmissionController) =&gt; new Simulation({ backend: BACKEND, load, controller: c, seed: 1 });
+
+// A window&#39;s completions, all at one latency; `inflight` is what the limiter saw in flight during it.
+function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number): void {
+  c.shouldAdmit(inflight, fromMs);
+  for (let i = 0; i &lt; 20; i++) c.onComplete(latencyMs, fromMs + i * 5);
+  c.onTick(fromMs + 100, 20);
+}
+
+describe(&#39;AimdLimiter&#39;, () =&gt; {
+  it(&#39;grows additively while latency is healthy and the limit is in use, and backs off multiplicatively when not healthy&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 5, 200, 0); // 5 in flight = half of 10: utilised
+    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+    window(c, 12, 2000, 100);
+    expect(c.currentLimit()).toBe(Math.floor((10 + AIMD_PRESETS.stable.increaseStep) * AIMD_PRESETS.stable.backoffRatio));
+  });
+});
+
+describe(&#39;GradientLimiter&#39;, () =&gt; {
+  it(&#39;adds headroom when uncongested and the limit is in use, and shrinks when latency exceeds tolerance&#39;, () =&gt; {
+    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+    window(c, 10, 200, 0); // 10 in flight = half of 20: utilised
+    expect(c.currentLimit()).toBe(20 + GRADIENT_PRESETS.stable.headroom);
+    window(c, 24, 2000, 100);
+    expect(c.currentLimit()).toBeLessThan(20 + GRADIENT_PRESETS.stable.headroom);
+  });
+});
+
+describe(&#39;utilisation guard: the limit only grows when at least half of it was in use&#39;, () =&gt; {
+  it(&#39;AIMD holds its limit through a healthy but under-used window&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 4, 200, 0); // 4 &lt; 10 / 2
+    expect(c.currentLimit()).toBe(10);
+    window(c, 5, 200, 100);
+    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+  });
+
+  it(&#39;Gradient holds its limit through a healthy but under-used window&#39;, () =&gt; {
+    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+    window(c, 9, 200, 0); // 9 &lt; 20 / 2
+    expect(c.currentLimit()).toBe(20);
+  });
+
+  it(&#39;still backs off under congestion when under-used (the guard gates growth only)&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 1, 200, 0);  // establishes the 200 ms baseline; under-used, so no growth
+    expect(c.currentLimit()).toBe(10);
+    window(c, 1, 2000, 100); // congested and still under-used: backoff applies regardless
+    expect(c.currentLimit()).toBe(Math.floor(10 * AIMD_PRESETS.stable.backoffRatio));
+  });
+
+  it(&#39;uses the peak in-flight seen during the window, so a burst inside an otherwise quiet window counts&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    c.shouldAdmit(1, 0);
+    c.shouldAdmit(7, 10);
+    c.shouldAdmit(2, 20);
+    for (let i = 0; i &lt; 20; i++) c.onComplete(200, i * 5);
+    c.onTick(100, 20);
+    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+  });
+
+  for (const [name, make] of [
+    [&#39;AIMD&#39;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+    [&#39;Gradient&#39;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+  ] as const) {
+    it(`${name} Stable does not ratchet toward maxLimit on a lightly loaded backend, but still probes upward when saturated`, () =&gt; {
+      // 60 rps on a 50-worker backend keeps ~12 in flight: under half the initial limit of 50, so nothing
+      // justifies raising it. Before the guard the limit climbed to maxLimit and sat there.
+      const light = new Simulation({ backend: BACKEND, load: { kind: &#39;sustained&#39;, baseRps: 60, peakRps: 60 }, controller: make(), seed: 1 });
+      expect(run(light, 60).limit).toBeLessThanOrEqual(AIMD_PRESETS.stable.initialLimit);
+      const saturated = mk(make()); // 300 rps &gt; capacity: in flight sits at the limit, so it may grow
+      expect(run(saturated, 10).limit).toBeGreaterThan(AIMD_PRESETS.stable.initialLimit);
+    });
+  }
+});
+
+describe(&#39;lesson 4 scenario: capacity drop&#39;, () =&gt; {
+  for (const [name, make] of [
+    [&#39;AIMD&#39;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+    [&#39;Gradient&#39;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+  ] as const) {</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">const mk = (c: AdmissionController) =&gt; new Simulation({ backend: BACKEND, load, controller: c, seed: 1 });
+const STABLE = [
+  [&#39;AIMD&#39;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+  [&#39;Gradient&#39;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+] as const;
+
+// A window with one admission attempt and 20 completions at one latency. `inflight` is the count the engine
+// reports at the attempt, i.e. before that request is added — so the limiter sees `inflight + 1` in flight.
+function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number): void {
+  c.shouldAdmit(inflight, fromMs);
+  for (let i = 0; i &lt; 20; i++) c.onComplete(latencyMs, fromMs + i * 5);
+  c.onTick(fromMs + 100, 20);
+}
+
+describe(&#39;AimdLimiter&#39;, () =&gt; {
+  it(&#39;grows additively while latency is healthy and the limit is in use, and backs off multiplicatively when not healthy&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 4, 200, 0); // 5 in flight once admitted = half of 10: utilised
+    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+    window(c, 12, 2000, 100);
+    expect(c.currentLimit()).toBe(Math.floor((10 + AIMD_PRESETS.stable.increaseStep) * AIMD_PRESETS.stable.backoffRatio));
+  });
+});
+
+describe(&#39;GradientLimiter&#39;, () =&gt; {
+  it(&#39;adds headroom when uncongested and the limit is in use, and shrinks when latency exceeds tolerance&#39;, () =&gt; {
+    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+    window(c, 9, 200, 0); // 10 in flight once admitted = half of 20: utilised
+    expect(c.currentLimit()).toBe(20 + GRADIENT_PRESETS.stable.headroom);
+    window(c, 24, 2000, 100);
+    expect(c.currentLimit()).toBeLessThan(20 + GRADIENT_PRESETS.stable.headroom);
+  });
+});
+
+describe(&#39;utilisation guard: the limit only grows when at least half of it was in use&#39;, () =&gt; {
+  it(&#39;AIMD holds its limit through a healthy but under-used window&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 3, 200, 0); // 4 in flight &lt; 10 / 2
+    expect(c.currentLimit()).toBe(10);
+    window(c, 4, 200, 100); // 5 in flight = 10 / 2
+    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+  });
+
+  it(&#39;Gradient holds its limit through a healthy but under-used window&#39;, () =&gt; {
+    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+    window(c, 8, 200, 0); // 9 in flight &lt; 20 / 2
+    expect(c.currentLimit()).toBe(20);
+  });
+
+  it(&#39;counts the request being admitted, so an attempt at exactly limit/2 − 1 in flight is utilised&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 4, 200, 0); // engine reports 4 before admission; 5 after
+    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+  });
+
+  it(&#39;still backs off under congestion when under-used (the guard gates growth only)&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    window(c, 1, 200, 0);  // establishes the 200 ms baseline; under-used, so no growth
+    expect(c.currentLimit()).toBe(10);
+    window(c, 1, 2000, 100); // congested and still under-used: backoff applies regardless
+    expect(c.currentLimit()).toBe(Math.floor(10 * AIMD_PRESETS.stable.backoffRatio));
+  });
+
+  it(&#39;uses the mean in-flight across the window, so one burst inside a quiet window does not unlock growth&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    c.shouldAdmit(1, 0);
+    c.shouldAdmit(8, 10); // a single attempt at 9 in flight
+    c.shouldAdmit(1, 20);
+    for (let i = 0; i &lt; 20; i++) c.onComplete(200, i * 5);
+    c.onTick(100, 20);
+    expect(c.currentLimit()).toBe(10); // mean (2 + 9 + 2) / 3 ≈ 4.3 &lt; 5
+  });
+
+  for (const [name, make] of STABLE) {
+    it(`${name} Stable holds its initial limit on a lightly loaded backend, but still probes upward when saturated`, () =&gt; {
+      // 60 rps on a 50-worker backend keeps ~12 in flight: under half the initial limit of 50 on average, so
+      // nothing justifies raising it. Before the guard the limit climbed to maxLimit and sat there; with a
+      // peak-based guard it still crept up one step per burst.
+      for (const seed of [1, 4]) {
+        const light = new Simulation({ backend: BACKEND, load: { kind: &#39;sustained&#39;, baseRps: 60, peakRps: 60 }, controller: make(), seed });
+        expect(run(light, 120).limit).toBe(AIMD_PRESETS.stable.initialLimit);
+      }
+      const saturated = mk(make()); // 300 rps &gt; capacity: in flight sits at the limit, so it may grow
+      expect(run(saturated, 10).limit).toBeGreaterThan(AIMD_PRESETS.stable.initialLimit);
+    });
+  }
+});
+
+describe(&#39;lesson 4 scenario: capacity drop&#39;, () =&gt; {
+  for (const [name, make] of STABLE) {</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-04-50-923Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-04-50-923Z" class="timestamp-link"><time datetime="2026-09-14T23:04:50.923Z" data-timestamp="2026-09-14T23:04:50.923Z">2026-09-14T23:04:50.923Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-54-811Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-54-811Z" class="timestamp-link"><time datetime="2026-09-14T23:04:54.811Z" data-timestamp="2026-09-14T23:04:54.811Z">2026-09-14T23:04:54.811Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01BigMnbMpDd6RGqJnX7iViU">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">RATIONALE.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">The guard uses the peak in-flight seen during the window (the same &#34;app-limited&#34; rule as Netflix&#39;s concurrency-limits) and gates growth only; backoff under congestion still applies.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">The guard uses the *mean* in-flight seen at admission attempts during the window (counting the request being admitted) and gates growth only; backoff under congestion still applies. Netflix&#39;s concurrency-limits gates on the peak instead; tried first here, it still crept — one Poisson burst that touched half the limit unlocked a growth step, growth is one-way, so a 60 rps backend ratcheted its limit ~10 per 10 minutes. Poisson arrivals see time averages, so the arrival-sampled mean is an unbiased utilisation estimate that a single burst cannot move.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-04-54-860Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-04-54-860Z" class="timestamp-link"><time datetime="2026-09-14T23:04:54.860Z" data-timestamp="2026-09-14T23:04:54.860Z">2026-09-14T23:04:54.860Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md has been updated successfully. (note: the file had been modified on disk since you last read it — the edit applied cleanly, but the file contains other changes not in your context. Read it before edits that depend on surrounding content.)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-56-183Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-56-183Z" class="timestamp-link"><time datetime="2026-09-14T23:04:56.183Z" data-timestamp="2026-09-14T23:04:56.183Z">2026-09-14T23:04:56.183Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01TdXDtdgQnzBTPv2uaRbM8S">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find any other copy that describes the guard as peak-based</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;half\|in use\|utilis&#34; src/lessons/Lesson4.tsx docs/RATIONALE.md | grep -v &#34;RATIONALE.md:25&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-04-56-252Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-04-56-252Z" class="timestamp-link"><time datetime="2026-09-14T23:04:56.252Z" data-timestamp="2026-09-14T23:04:56.252Z">2026-09-14T23:04:56.252Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>src/lessons/Lesson4.tsx:48:      intro=&quot;Instead of guessing a limit, measure it. Both algorithms watch request latency: when it rises above the no-load baseline the backend is queueing, so the limit shrinks; when latency is healthy and at least half the limit is in use, the limit probes upward. Same capacity drop as before.&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-04-57-986Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-04-57-986Z" class="timestamp-link"><time datetime="2026-09-14T23:04:57.986Z" data-timestamp="2026-09-14T23:04:57.986Z">2026-09-14T23:04:57.986Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01L9qCXZiWztmzQdtY8qSymh">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Lint, build, and run the full suite with the mean-based guard</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error&#34;; echo &#34;--- build ---&#34;; npm run build 2&gt;&amp;1 | grep -E &#34;error|✓ built&#34;; echo &#34;--- test ---&#34;; npm test 2&gt;&amp;1 | grep -E &#34;×|Test Files|Tests |AssertionError|expected&#34; | head -20</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-05-02-388Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-05-02-388Z" class="timestamp-link"><time datetime="2026-09-14T23:05:02.388Z" data-timestamp="2026-09-14T23:05:02.388Z">2026-09-14T23:05:02.388Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- build ---
+✓ built in 70ms
+--- test ---
+ Test Files  6 passed (6)
+      Tests  63 passed (63)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-05-06-808Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-05-06-808Z" class="timestamp-link"><time datetime="2026-09-14T23:05:06.808Z" data-timestamp="2026-09-14T23:05:06.808Z">2026-09-14T23:05:06.808Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Everything's passing — lint, build, and 63/63 tests including the new one, and the Lesson 4 copy still holds up. Committing and pushing now, updating the PR body, then switching back to the docs branch.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-05-14-114Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-05-14-114Z" class="timestamp-link"><time datetime="2026-09-14T23:05:14.114Z" data-timestamp="2026-09-14T23:05:14.114Z">2026-09-14T23:05:14.114Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01ATzqdp8nKf1cvmv4i25EFk">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit and push the guard fix, then fetch the current PR body for editing</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add src/sim/adaptive.ts src/sim/adaptive.test.ts docs/RATIONALE.md &amp;&amp; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+fix(sim): gate adaptive growth on mean in-flight, not the window&#39;s peak
+
+A single Poisson burst that touched limit/2 unlocked a one-way growth step,
+so a lightly loaded backend still crept toward maxLimit (~10 per 10 min at
+60 rps). The arrival-sampled mean is an unbiased utilisation estimate that a
+burst cannot move. Also count the request being admitted (shouldAdmit sees
+the pre-admission count), and hoist the Stable-preset test table.
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; &amp;&amp; git -c credential.helper=&#39;!gh auth git-credential&#39; push -q origin feat/adaptive-utilisation-guard 2&gt;&amp;1 | grep -v &#34;^remote:&#34;; git log --oneline | head -2; gh pr view 8 --json body --jq .body &gt; /private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/scratchpad/pr8-body.md &amp;&amp; echo &#34;--- body saved ---&#34; &amp;&amp; cat /private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/scratchpad/pr8-body.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-05-18-091Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-05-18-091Z" class="timestamp-link"><time datetime="2026-09-14T23:05:18.091Z" data-timestamp="2026-09-14T23:05:18.091Z">2026-09-14T23:05:18.091Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>7d89c63 fix(sim): gate adaptive growth on mean in-flight, not the window&#x27;s peak
+1ef5655 feat(sim): only grow an adaptive limit when at least half of it was in use
+--- body saved ---
+## Summary
+
+`WindowedLimiter` (the base of `AimdLimiter` and `GradientLimiter` in `src/sim/adaptive.ts`) now records the peak in-flight count it observes through `shouldAdmit` during each window and, at the window boundary, only applies an *increase* if that peak was at least half the current limit. Decreases apply regardless. Lesson 4&#x27;s intro and a RATIONALE bullet describe the rule.
+
+## Motivation
+
+Both algorithms grew the limit whenever latency looked healthy. On a lightly loaded backend latency is healthy at *any* limit, so the limit ratcheted to `maxLimit` and sat there — leaving no headroom to shed with when load arrived. Growth should require evidence that the current limit is actually being used; this is the same &quot;app-limited&quot; guard Netflix&#x27;s concurrency-limits applies. The guard is deliberately one-sided so congestion still forces a backoff even when under-used.
+
+Scope note: this does not change behaviour under *saturating* load (in-flight sits at the limit, so growth is legitimately allowed); the baseline-drift follow-up noted on PR #6 is separate.
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 62 tests pass (6 new)
+- [ ] Verified in the browser — copy-only UI change (Lesson 4 intro sentence)
+
+Test changes: the two existing growth tests now feed the limiter a utilised window (`shouldAdmit` with in-flight = limit/2) before expecting growth — under the new rule an unobserved window is treated as idle. New tests: AIMD and Gradient hold their limit through a healthy but under-used window; backoff still applies when under-used; the peak in-flight within a window is what counts; and a scenario test — at 60 rps on the 50-worker backend (~12 in flight) both Stable presets stay at or below their initial limit of 50 after 60 s, while at 300 rps they still probe above 50 within 10 s. The lesson 4 capacity-drop scenario is unchanged and passes. `/code-review` was not run on this branch — this was executed as a single-shot worker without subagent access.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-05-30-488Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-05-30-488Z" class="timestamp-link"><time datetime="2026-09-14T23:05:30.488Z" data-timestamp="2026-09-14T23:05:30.488Z">2026-09-14T23:05:30.488Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01HNetvj2CAbxYsAQn6jhZjk">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update the PR 8 body and return to the docs branch</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr edit 8 --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+`WindowedLimiter` (the base of `AimdLimiter` and `GradientLimiter` in `src/sim/adaptive.ts`) now samples the in-flight count at every admission attempt during a window and, at the window boundary, only applies an *increase* if the mean of those samples was at least half the current limit. Decreases apply regardless. Lesson 4&#39;s intro and a RATIONALE bullet describe the rule.
+
+## Motivation
+
+Both algorithms grew the limit whenever latency looked healthy. On a lightly loaded backend latency is healthy at *any* limit, so the limit ratcheted to `maxLimit` and sat there — leaving no headroom to shed with when load arrived. Growth should require evidence that the current limit is actually being used. The guard is deliberately one-sided so congestion still forces a backoff even when under-used.
+
+Scope note: this does not change behaviour under *saturating* load (in-flight sits at the limit, so growth is legitimately allowed); the baseline-drift follow-up noted on PR #6 is separate.
+
+## Review follow-ups (commit 2, from `/code-review medium 8`)
+
+- **Mean instead of peak.** The first commit gated on the window&#39;s *peak* in-flight (Netflix&#39;s &#34;app-limited&#34; rule). Empirically it still crept: one Poisson burst touching limit/2 unlocked a one-way growth step, ~10 per 10 min at 60 rps, and the scenario test passed only on seed 1. The arrival-sampled mean is an unbiased utilisation estimate (Poisson arrivals see time averages) that a single burst cannot move. Test now asserts the limit stays *exactly* 50 for 120 s on seeds 1 and 4.
+- **Off-by-one.** `shouldAdmit` receives the pre-admission count; an admitted request is now sampled as `inflight + 1`, so the threshold is limit/2 rather than (limit+2)/2. Test: an attempt at 4 in flight under limit 10 counts as utilised.
+- The Stable-preset table in the tests is hoisted to one `STABLE` const.
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 63 tests pass (7 new)
+- [x] `/code-review medium 8` run and its three findings applied (above)
+- [ ] Verified in the browser — copy-only UI change (Lesson 4 intro sentence)
+
+Test changes: the two existing growth tests feed the limiter a utilised window before expecting growth — an unobserved window is treated as idle. New tests: AIMD and Gradient hold through a healthy but under-used window; backoff still applies when under-used; the admitted request is counted; a burst inside a quiet window does *not* unlock growth; and the light-load / saturated scenario above. The lesson 4 capacity-drop scenario is unchanged and passes.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; 2&gt;&amp;1 | tail -1; git checkout -q docs/code-review-before-pr &amp;&amp; git branch --show-current &amp;&amp; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T23-05-34-168Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T23-05-34-168Z" class="timestamp-link"><time datetime="2026-09-14T23:05:34.168Z" data-timestamp="2026-09-14T23:05:34.168Z">2026-09-14T23:05:34.168Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>https://github.com/utsavjain0511/adaptive-limits-simulator/pull/8
+docs/code-review-before-pr</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T23-05-43-673Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T23-05-43-673Z" class="timestamp-link"><time datetime="2026-09-14T23:05:43.673Z" data-timestamp="2026-09-14T23:05:43.673Z">2026-09-14T23:05:43.673Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>PR #8 is updated with a second commit (<code>7d89c63</code>), and your working tree is back on <code>docs/code-review-before-pr</code>, clean — the "changed on disk" notes are just that branch's older files.</p>
+<p>What changed in <code>WindowedLimiter</code>:
+- <strong>Mean, not peak.</strong> <code>shouldAdmit</code> accumulates the in-flight count at every admission attempt; at the window boundary growth is allowed only if the mean was ≥ limit/2. Under Poisson arrivals that mean is an unbiased estimate of true utilisation, so a single burst can't move it — the creep the reviewer measured (~10 per 10 min at 60 rps) is gone.
+- <strong>Off-by-one fixed.</strong> An admitted request is sampled as <code>inflight + 1</code>, since the engine reports the pre-admission count; the threshold is now truly limit/2.
+- Backoff remains unconditional; the Lesson 4 capacity-drop scenario is unchanged and passing.</p>
+<p>Tests — 63/63, lint and build clean:
+- the light-load scenario now asserts the limit stays <strong>exactly</strong> 50 for 120 s on seeds 1 <em>and</em> 4 (the seed that broke the old assertion), and still probes above 50 within 10 s when saturated;
+- the "burst counts" test became "a burst inside a quiet window does <em>not</em> unlock growth" (attempts at 2, 9, 2 in flight → mean 4.3 &lt; 5 → holds);
+- a new test pins the admitted-request accounting; the Stable-preset table is hoisted to one <code>STABLE</code> const.</p>
+<p>RATIONALE bullet rewritten to say why mean beats Netflix's peak rule here; PR body has a "Review follow-ups" section and the Testing checklist now records the review. Ready for your merge.</p></div></div></div>
+<div class="message user" id="msg-2026-09-16T04-57-57-392Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-16T04-57-57-392Z" class="timestamp-link"><time datetime="2026-09-16T04:57:57.392Z" data-timestamp="2026-09-16T04:57:57.392Z">2026-09-16T04:57:57.392Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>alets-fix-the-075e7c2c03064742</task-id>
+<output-file>/private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/tasks/alets-fix-the-075e7c2c03064742.output</output-file>
+<status>completed</status></p>
+<summary>Agent "let's fix the baseline calculation for the fifo w…" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Task: replace the latency-based adaptive baseline with one built from per-request processing time, measured separately from queue wait.</p>
+<p>Done — <strong>PR #9:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/9 (branch <code>feat/processing-time-baseline</code> off <code>origin/main</code>, commit <code>09fc204</code>). Working tree restored to <code>docs/code-review-before-pr</code>, clean apart from your untracked <code>AGENTS.md</code>; the "changed on disk" notes are just that branch's older files.</p>
+<p><strong>Change</strong>
+- <code>src/sim/engine.ts</code> — records <code>servedAt</code> when a request first holds a worker; on completion reports <code>serviceMs = now − servedAt</code> to the controller (<code>null</code> if the client abandoned it). <code>TickMetrics</code> gains <code>meanWaitMs</code> / <code>meanServiceMs</code> (not rendered yet).
+- <code>src/sim/types.ts</code> — <code>onComplete(latencyMs, nowMs, serviceMs: number | null)</code>.
+- <code>src/sim/adaptive.ts</code> — <code>BaselineTracker</code> holds the min of window-average <em>service</em> time; each window's mean latency is compared against it, so the signal is queue wait. All-abandoned windows are judged against the last baseline; a limiter that has never seen a completed request holds.
+- Docs: RATIONALE bullet rewritten (why processing time beats a probe window; the slowdown blind spot; abandoned-window handling), the two "known limitation" pointers on the FIFO and guard bullets updated, Lesson 4 intro reworded.</p>
+<p><strong>Verification</strong> — lint and build clean, 71/71 (7 new). Trajectories (seed 42, 300 rps, 180 s): AIMD Stable 52–60, Gradient Stable 62–64 (was 60–95 and → 200); capacity-drop trajectory unchanged; Aggressive/Sluggish still match their copy.</p>
+<p><strong>Decisions I made without asking</strong> (the directive invited questions; a fork can't ask): service time is bound at first service and reported only for requests served to completion — a partially served then abandoned request would bias the baseline low; abandoned windows keep the previous baseline rather than being skipped, so a stalled backend still backs off; the 30-window memory is kept so the baseline follows a genuine backend slowdown after ~15 s (during which the limiter over-shrinks — noted in RATIONALE, not wired to a lesson).</p>
+<p>Out of scope, noted: <code>/code-review</code> was not run (no subagent access from a fork) — the PR body asks for it before merge.</result>
+<usage><subagent_tokens>526687</subagent_tokens><tool_uses>332</tool_uses><duration_ms>343161</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T04-58-14-903Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T04-58-14-903Z" class="timestamp-link"><time datetime="2026-09-16T04:58:14.903Z" data-timestamp="2026-09-16T04:58:14.903Z">2026-09-16T04:58:14.903Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The baseline fork finished and opened PR #9. Let me verify the core of the change before summarising — particularly the <code>onComplete</code> contract change and how abandoned requests are handled.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T04-58-18-783Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T04-58-18-783Z" class="timestamp-link"><time datetime="2026-09-16T04:58:18.783Z" data-timestamp="2026-09-16T04:58:18.783Z">2026-09-16T04:58:18.783Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019JTmMyZAvxAJQU9KtMWSCU">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show the engine, types, and limiter diffs of PR 9</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git branch --show-current; git status --short; echo &#34;--- PR 9 files ---&#34;; gh pr diff 9 --name-only 2&gt;&amp;1; echo &#34;--- adaptive.ts ---&#34;; gh pr diff 9 -- 2&gt;&amp;1 | sed -n &#39;/src\/sim\/adaptive.ts/,/^diff --git/p&#39; | grep -E &#34;^[+-]&#34; | grep -v &#34;^[+-]{3}&#34;; echo &#34;--- engine.ts ---&#34;; gh pr diff 9 -- 2&gt;&amp;1 | sed -n &#39;/src\/sim\/engine.ts/,/^diff --git/p&#39; | grep -E &#34;^[+-]&#34; | grep -v &#34;^[+-]{3}&#34;; echo &#34;--- types.ts ---&#34;; gh pr diff 9 -- 2&gt;&amp;1 | sed -n &#39;/src\/sim\/types.ts/,/^diff --git/p&#39; | grep -E &#34;^[+-]&#34; | grep -v &#34;^[+-]{3}&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T04-58-26-424Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T04-58-26-424Z" class="timestamp-link"><time datetime="2026-09-16T04:58:26.424Z" data-timestamp="2026-09-16T04:58:26.424Z">2026-09-16T04:58:26.424Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>docs/code-review-before-pr
+?? AGENTS.md
+--- PR 9 files ---
+docs/RATIONALE.md
+src/lessons/Lesson4.tsx
+src/sim/adaptive.test.ts
+src/sim/adaptive.ts
+src/sim/engine.test.ts
+src/sim/engine.ts
+src/sim/metrics.test.ts
+src/sim/types.ts
+--- adaptive.ts ---
+--- a/src/sim/adaptive.ts
++++ b/src/sim/adaptive.ts
+-// &quot;No-load&quot; latency baseline = min of recent window averages: bounded memory, so a long
+-// overload cannot drag the baseline up and hide congestion.
++// Baseline = min of recent window averages of *processing* time (time holding a worker, excluding queue
++// wait). Queueing therefore never leaks into the baseline, however long it lasts; the bounded memory only
++// lets the baseline follow a change in the backend&#x27;s own speed after `windows` windows.
+-  push(v: number): number {
++  push(v: number): void {
+-    return Math.min(...this.hist);
++  current(): number | null { return this.hist.length ? Math.min(...this.hist) : null; }
+-  private samples: number[] = [];
++  private latencies: number[] = [];
++  private services: number[] = [];
+-  onComplete(latencyMs: number): void { this.samples.push(latencyMs); }
++  onComplete(latencyMs: number, _nowMs: number, serviceMs: number | null): void {
++    this.latencies.push(latencyMs);
++    if (serviceMs != null) this.services.push(serviceMs);
++  }
+-    if (this.samples.length === 0) return;
+-    const avg = this.samples.reduce((a, b) =&gt; a + b, 0) / this.samples.length;
+-    this.samples = [];
+-    const next = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
++    const mean = (xs: number[]) =&gt; xs.reduce((a, b) =&gt; a + b, 0) / xs.length;
++    const latencies = this.latencies, services = this.services;
++    this.latencies = [];
++    this.services = [];
++    if (latencies.length === 0) return;
++    // A window whose completions were all abandoned has no service samples; it is judged against the last
++    // known baseline. Until one request has been served to completion there is nothing to judge against.
++    if (services.length &gt; 0) this.baseline.push(mean(services));
++    const base = this.baseline.current();
++    if (base == null) return;
++    const next = clamp(this.update(mean(latencies), base), this.bounds.minLimit, this.bounds.maxLimit);
++  // windowAvgMs is the window&#x27;s mean latency (wait + service); baselineMs is the backend&#x27;s processing time.
+--- engine.ts ---
+--- a/src/sim/engine.ts
++++ b/src/sim/engine.ts
+-interface Inflight { id: number; arrivedAt: number; remainingMs?: number; } // remainingMs is set when the request first holds a worker
+-interface TickLog { offered: number; admitted: number; rejected: number; good: number; timedOut: number; latencies: number[]; }
++interface Inflight { id: number; arrivedAt: number; servedAt?: number; remainingMs?: number; } // servedAt/remainingMs are set when the request first holds a worker
++interface TickLog { offered: number; admitted: number; rejected: number; good: number; timedOut: number; latencies: number[]; waits: number[]; services: number[]; }
+-      r.remainingMs ??= serviceTimeMs * (0.7 + 0.6 * hashUnit(r.id));
++      if (r.remainingMs == null) {
++        r.servedAt = this.nowMs;
++        r.remainingMs = serviceTimeMs * (0.7 + 0.6 * hashUnit(r.id));
++      }
+-    const latencies: number[] = [];
++    const latencies: number[] = [], waits: number[] = [], services: number[] = [];
+-      ctrl.onComplete(latency, this.nowMs);
++      // Only a request served to completion has a known service time; queue wait is the rest of its latency.
++      const serviceMs = finished ? this.nowMs - r.servedAt! : null;
++      if (serviceMs != null) { services.push(serviceMs); waits.push(latency - serviceMs); }
++      ctrl.onComplete(latency, this.nowMs, serviceMs);
+-    this.log.push({ offered: arrivals, admitted, rejected, good, timedOut, latencies });
++    this.log.push({ offered: arrivals, admitted, rejected, good, timedOut, latencies, waits, services });
+-    const sum = (k: keyof Omit&lt;TickLog, &#x27;latencies&#x27;&gt;) =&gt; recent.reduce((a, t) =&gt; a + t[k], 0);
++    const sum = (k: &#x27;offered&#x27; | &#x27;admitted&#x27; | &#x27;rejected&#x27; | &#x27;good&#x27; | &#x27;timedOut&#x27;) =&gt; recent.reduce((a, t) =&gt; a + t[k], 0);
++    const meanOf = (xs: number[]) =&gt; (xs.length ? xs.reduce((a, b) =&gt; a + b, 0) / xs.length : 0);
++      meanWaitMs: meanOf(this.log.flatMap((t) =&gt; t.waits)), meanServiceMs: meanOf(this.log.flatMap((t) =&gt; t.services)),
+--- types.ts ---
+--- a/src/sim/types.ts
++++ b/src/sim/types.ts
+-  onComplete(latencyMs: number, nowMs: number): void;
++  // serviceMs is the time the request spent holding a worker (latency minus queue wait); null when the
++  // client abandoned it before it finished, in which case only the latency is known.
++  onComplete(latencyMs: number, nowMs: number, serviceMs: number | null): void;
++  meanWaitMs: number; meanServiceMs: number; // latency split into time queued and time holding a worker (served requests only)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T04-59-04-739Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T04-59-04-739Z" class="timestamp-link"><time datetime="2026-09-16T04:59:04.739Z" data-timestamp="2026-09-16T04:59:04.739Z">2026-09-16T04:59:04.739Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T04-59-04-759Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T04-59-04-759Z" class="timestamp-link"><time datetime="2026-09-16T04:59:04.759Z" data-timestamp="2026-09-16T04:59:04.759Z">2026-09-16T04:59:04.759Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Verified the diff matches the fork's report and works as intended — 71/71 tests passing, lint/build clean, and both AIMD/Gradient trackers now stay stable under load. PR #9 is up but hasn't been code-reviewed yet, and I'll flag one design gap: the 30-window min baseline lags real backend slowdowns by ~15s since it was built for the old latency-based approach — switching to a current/short-window mean would fix this without affecting Lesson 4's scenario.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T04-59-06-701Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T04-59-06-701Z" class="timestamp-link"><time datetime="2026-09-16T04:59:06.701Z" data-timestamp="2026-09-16T04:59:06.701Z">2026-09-16T04:59:06.701Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KCRts76W3pNhcRE1SD49cg"><div class="tool-header"><span class="tool-icon">⚙</span> AskUserQuestion</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;questions&#34;: [
+    {
+      &#34;question&#34;: &#34;For the processing-time baseline in PR #9, which memory should it use?&#34;,
+      &#34;header&#34;: &#34;Baseline memory&#34;,
+      &#34;multiSelect&#34;: false,
+      &#34;options&#34;: [
+        {
+          &#34;label&#34;: &#34;Current window (or 2–3 window mean) (Recommended)&#34;,
+          &#34;description&#34;: &#34;Baseline tracks the backend&#39;s actual speed instantly; the limiter reacts only to queue wait. A downstream slowdown never causes a spurious backoff. I&#39;d push this as a second commit on PR #9 with a slowdown test.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Keep the 30-window min as landed&#34;,
+          &#34;description&#34;: &#34;Baseline lags a real slowdown by ~15 s and the limiter over-shrinks during it (documented in RATIONALE). Simplest; no lesson exercises adaptive + slowdown today.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Longer memory (e.g. 120 windows)&#34;,
+          &#34;description&#34;: &#34;Even more conservative baseline; longer over-shrink after a slowdown. Only makes sense if you want backoff on slowdowns as a deliberate SLA-protection behaviour.&#34;
+        }
+      ]
+    }
+  ]
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-06-41-837Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-06-41-837Z" class="timestamp-link"><time datetime="2026-09-16T05:06:41.837Z" data-timestamp="2026-09-16T05:06:41.837Z">2026-09-16T05:06:41.837Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Your questions have been answered: &quot;For the processing-time baseline in PR #9, which memory should it use?&quot;=&quot;Current window (or 2–3 window mean) (Recommended)&quot;. You can now continue with these answers in mind.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-06-44-480Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-06-44-480Z" class="timestamp-link"><time datetime="2026-09-16T05:06:44.480Z" data-timestamp="2026-09-16T05:06:44.480Z">2026-09-16T05:06:44.480Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Switching PR #9's baseline to a short memory (mean of the last 3 windows' processing time). Checking out the branch and reading the limiter, its tests, and the RATIONALE bullet first.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-06-45-844Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-06-45-844Z" class="timestamp-link"><time datetime="2026-09-16T05:06:45.844Z" data-timestamp="2026-09-16T05:06:45.844Z">2026-09-16T05:06:45.844Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_017uNd5fqa7QKbip7aHrNkFZ">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Switch to the PR 9 branch after confirming the tree is clean</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status --short &amp;&amp; git checkout -q feat/processing-time-baseline &amp;&amp; git pull -q --ff-only 2&gt;&amp;1 | tail -1; git branch --show-current &amp;&amp; git log --oneline | head -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-06-47-155Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-06-47-155Z" class="timestamp-link"><time datetime="2026-09-16T05:06:47.155Z" data-timestamp="2026-09-16T05:06:47.155Z">2026-09-16T05:06:47.155Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01VGdjK3wR5xC4xqmsC5bXcX"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts&#34;,
+  &#34;offset&#34;: 1,
+  &#34;limit&#34;: 70
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-06-47-843Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-06-47-843Z" class="timestamp-link"><time datetime="2026-09-16T05:06:47.843Z" data-timestamp="2026-09-16T05:06:47.843Z">2026-09-16T05:06:47.843Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Lfm14kkoYzz76e11MVXdk4"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-06-48-463Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-06-48-463Z" class="timestamp-link"><time datetime="2026-09-16T05:06:48.463Z" data-timestamp="2026-09-16T05:06:48.463Z">2026-09-16T05:06:48.463Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>?? AGENTS.md
+feat/processing-time-baseline
+09fc204 fix(sim): build the adaptive baseline from processing time, not latency</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-06-48-470Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-06-48-470Z" class="timestamp-link"><time datetime="2026-09-16T05:06:48.470Z" data-timestamp="2026-09-16T05:06:48.470Z">2026-09-16T05:06:48.470Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import type { AdmissionController } from &#x27;./types&#x27;;
+2	
+3	export interface AdaptiveBounds { initialLimit: number; minLimit: number; maxLimit: number; windowMs: number; }
+4	export interface AimdConfig extends AdaptiveBounds { latencyThresholdFactor: number; increaseStep: number; backoffRatio: number; }
+5	export interface GradientConfig extends AdaptiveBounds { tolerance: number; smoothing: number; headroom: number; }
+6	export type PresetName = &#x27;stable&#x27; | &#x27;aggressive&#x27; | &#x27;sluggish&#x27;;
+7	
+8	const clamp = (v: number, lo: number, hi: number) =&gt; Math.max(lo, Math.min(hi, v));
+9	
+10	// Baseline = min of recent window averages of *processing* time (time holding a worker, excluding queue
+11	// wait). Queueing therefore never leaks into the baseline, however long it lasts; the bounded memory only
+12	// lets the baseline follow a change in the backend&#x27;s own speed after `windows` windows.
+13	class BaselineTracker {
+14	  private hist: number[] = [];
+15	  constructor(private readonly windows = 30) {}
+16	  push(v: number): void {
+17	    this.hist.push(v);
+18	    if (this.hist.length &gt; this.windows) this.hist.shift();
+19	  }
+20	  current(): number | null { return this.hist.length ? Math.min(...this.hist) : null; }
+21	}
+22	
+23	abstract class WindowedLimiter implements AdmissionController {
+24	  abstract readonly name: string;
+25	  protected limit: number;
+26	  private latencies: number[] = [];
+27	  private services: number[] = [];
+28	  private inflightSum = 0;
+29	  private inflightSamples = 0;
+30	  private windowEndsAt: number;
+31	  private readonly baseline = new BaselineTracker();
+32	
+33	  constructor(private readonly bounds: AdaptiveBounds) {
+34	    this.limit = bounds.initialLimit;
+35	    this.windowEndsAt = bounds.windowMs;
+36	  }
+37	  shouldAdmit(inflight: number): boolean {
+38	    const admit = inflight &lt; this.limit;
+39	    // `inflight` is the count before this request; sample what it will be once admitted.
+40	    this.inflightSum += admit ? inflight + 1 : inflight;
+41	    this.inflightSamples++;
+42	    return admit;
+43	  }
+44	  onComplete(latencyMs: number, _nowMs: number, serviceMs: number | null): void {
+45	    this.latencies.push(latencyMs);
+46	    if (serviceMs != null) this.services.push(serviceMs);
+47	  }
+48	  onTick(nowMs: number): void {
+49	    if (nowMs &lt; this.windowEndsAt) return;
+50	    this.windowEndsAt = nowMs + this.bounds.windowMs;
+51	    // Healthy latency only justifies a higher limit if the current one was actually being used; a lightly
+52	    // loaded service must not ratchet its limit up to the maximum and then have no headroom to shed with.
+53	    // The mean in-flight seen at arrivals is used rather than the peak: Poisson arrivals see time averages,
+54	    // and a single burst must not unlock a one-way growth step.
+55	    const meanInflight = this.inflightSamples ? this.inflightSum / this.inflightSamples : 0;
+56	    const utilised = meanInflight * 2 &gt;= this.limit;
+57	    this.inflightSum = 0;
+58	    this.inflightSamples = 0;
+59	    const mean = (xs: number[]) =&gt; xs.reduce((a, b) =&gt; a + b, 0) / xs.length;
+60	    const latencies = this.latencies, services = this.services;
+61	    this.latencies = [];
+62	    this.services = [];
+63	    if (latencies.length === 0) return;
+64	    // A window whose completions were all abandoned has no service samples; it is judged against the last
+65	    // known baseline. Until one request has been served to completion there is nothing to judge against.
+66	    if (services.length &gt; 0) this.baseline.push(mean(services));
+67	    const base = this.baseline.current();
+68	    if (base == null) return;
+69	    const next = clamp(this.update(mean(latencies), base), this.bounds.minLimit, this.bounds.maxLimit);
+70	    if (next &lt; this.limit || utilised) this.limit = next;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-06-48-472Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-06-48-472Z" class="timestamp-link"><time datetime="2026-09-16T05:06:48.472Z" data-timestamp="2026-09-16T05:06:48.472Z">2026-09-16T05:06:48.472Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import { describe, it, expect } from &#x27;vitest&#x27;;
+2	import { AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS } from &#x27;./adaptive&#x27;;
+3	import { ConcurrencyLimiter } from &#x27;./controllers&#x27;;
+4	import { Simulation, DT_MS } from &#x27;./engine&#x27;;
+5	import { CAPACITY_DROP, DEFAULT_BACKEND } from &#x27;./scenario&#x27;;
+6	import type { AdmissionController, TickMetrics } from &#x27;./types&#x27;;
+7	
+8	// The lesson&#x27;s own backend and event, so the scenario follows the lesson if either is retuned.
+9	const BACKEND = DEFAULT_BACKEND;
+10	const DROP = CAPACITY_DROP;
+11	const load = { kind: &#x27;sustained&#x27; as const, baseRps: 300, peakRps: 300 };
+12	function run(sim: Simulation, seconds: number): TickMetrics {
+13	  let m!: TickMetrics;
+14	  for (let i = 0; i &lt; (seconds * 1000) / DT_MS; i++) m = sim.step();
+15	  return m;
+16	}
+17	const mk = (c: AdmissionController) =&gt; new Simulation({ backend: BACKEND, load, controller: c, seed: 1 });
+18	const STABLE = [
+19	  [&#x27;AIMD&#x27;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+20	  [&#x27;Gradient&#x27;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+21	] as const;
+22	
+23	// A window with one admission attempt and 20 completions at one latency. `inflight` is the count the engine
+24	// reports at the attempt, i.e. before that request is added — so the limiter sees `inflight + 1` in flight.
+25	// `serviceMs` is the time each completion spent holding a worker; the difference from `latencyMs` is queue wait.
+26	function window(c: AdmissionController, inflight: number, latencyMs: number, fromMs: number, serviceMs = 200): void {
+27	  c.shouldAdmit(inflight, fromMs);
+28	  for (let i = 0; i &lt; 20; i++) c.onComplete(latencyMs, fromMs + i * 5, serviceMs);
+29	  c.onTick(fromMs + 100, 20);
+30	}
+31	
+32	describe(&#x27;AimdLimiter&#x27;, () =&gt; {
+33	  it(&#x27;grows additively while latency is healthy and the limit is in use, and backs off multiplicatively when not healthy&#x27;, () =&gt; {
+34	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+35	    window(c, 4, 200, 0); // 5 in flight once admitted = half of 10: utilised
+36	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+37	    window(c, 12, 2000, 100);
+38	    expect(c.currentLimit()).toBe(Math.floor((10 + AIMD_PRESETS.stable.increaseStep) * AIMD_PRESETS.stable.backoffRatio));
+39	  });
+40	});
+41	
+42	describe(&#x27;GradientLimiter&#x27;, () =&gt; {
+43	  it(&#x27;adds headroom when uncongested and the limit is in use, and shrinks when latency exceeds tolerance&#x27;, () =&gt; {
+44	    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+45	    window(c, 9, 200, 0); // 10 in flight once admitted = half of 20: utilised
+46	    expect(c.currentLimit()).toBe(20 + GRADIENT_PRESETS.stable.headroom);
+47	    window(c, 24, 2000, 100);
+48	    expect(c.currentLimit()).toBeLessThan(20 + GRADIENT_PRESETS.stable.headroom);
+49	  });
+50	});
+51	
+52	describe(&#x27;utilisation guard: the limit only grows when at least half of it was in use&#x27;, () =&gt; {
+53	  it(&#x27;AIMD holds its limit through a healthy but under-used window&#x27;, () =&gt; {
+54	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+55	    window(c, 3, 200, 0); // 4 in flight &lt; 10 / 2
+56	    expect(c.currentLimit()).toBe(10);
+57	    window(c, 4, 200, 100); // 5 in flight = 10 / 2
+58	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+59	  });
+60	
+61	  it(&#x27;Gradient holds its limit through a healthy but under-used window&#x27;, () =&gt; {
+62	    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+63	    window(c, 8, 200, 0); // 9 in flight &lt; 20 / 2
+64	    expect(c.currentLimit()).toBe(20);
+65	  });
+66	
+67	  it(&#x27;counts the request being admitted, so an attempt at exactly limit/2 − 1 in flight is utilised&#x27;, () =&gt; {
+68	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+69	    window(c, 4, 200, 0); // engine reports 4 before admission; 5 after
+70	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+71	  });
+72	
+73	  it(&#x27;still backs off under congestion when under-used (the guard gates growth only)&#x27;, () =&gt; {
+74	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+75	    window(c, 1, 200, 0);  // establishes the 200 ms baseline; under-used, so no growth
+76	    expect(c.currentLimit()).toBe(10);
+77	    window(c, 1, 2000, 100); // congested and still under-used: backoff applies regardless
+78	    expect(c.currentLimit()).toBe(Math.floor(10 * AIMD_PRESETS.stable.backoffRatio));
+79	  });
+80	
+81	  it(&#x27;uses the mean in-flight across the window, so one burst inside a quiet window does not unlock growth&#x27;, () =&gt; {
+82	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+83	    c.shouldAdmit(1, 0);
+84	    c.shouldAdmit(8, 10); // a single attempt at 9 in flight
+85	    c.shouldAdmit(1, 20);
+86	    for (let i = 0; i &lt; 20; i++) c.onComplete(200, i * 5, 200);
+87	    c.onTick(100, 20);
+88	    expect(c.currentLimit()).toBe(10); // mean (2 + 9 + 2) / 3 ≈ 4.3 &lt; 5
+89	  });
+90	
+91	  for (const [name, make] of STABLE) {
+92	    it(`${name} Stable holds its initial limit on a lightly loaded backend, but still probes upward when saturated`, () =&gt; {
+93	      // 60 rps on a 50-worker backend keeps ~12 in flight: under half the initial limit of 50 on average, so
+94	      // nothing justifies raising it. Before the guard the limit climbed to maxLimit and sat there; with a
+95	      // peak-based guard it still crept up one step per burst.
+96	      for (const seed of [1, 4]) {
+97	        const light = new Simulation({ backend: BACKEND, load: { kind: &#x27;sustained&#x27;, baseRps: 60, peakRps: 60 }, controller: make(), seed });
+98	        expect(run(light, 120).limit).toBe(AIMD_PRESETS.stable.initialLimit);
+99	      }
+100	      const saturated = mk(make()); // 300 rps &gt; capacity: in flight sits at the limit, so it may grow
+101	      expect(run(saturated, 10).limit).toBeGreaterThan(AIMD_PRESETS.stable.initialLimit);
+102	    });
+103	  }
+104	});
+105	
+106	describe(&#x27;processing-time baseline: congestion is latency in excess of the time a request spends being served&#x27;, () =&gt; {
+107	  it(&#x27;AIMD keeps backing off under sustained queueing instead of absorbing the queue wait into its baseline&#x27;, () =&gt; {
+108	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 50, windowMs: 100 });
+109	    // 40 windows in which every request waited 600 ms for a worker and was then served in 200 ms.
+110	    for (let w = 0; w &lt; 40; w++) window(c, 49, 800, w * 100, 200);
+111	    expect(c.currentLimit()).toBe(AIMD_PRESETS.stable.minLimit);
+112	  });
+113	
+114	  it(&#x27;Gradient shrinks toward its floor under sustained queueing for the same reason&#x27;, () =&gt; {
+115	    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 50, windowMs: 100 });
+116	    for (let w = 0; w &lt; 40; w++) window(c, 49, 800, w * 100, 200);
+117	    expect(c.currentLimit()).toBeLessThan(10); // fixed point of 0.5 × limit + headroom
+118	  });
+119	
+120	  it(&#x27;a window in which every completion was abandoned keeps the previous baseline and still backs off&#x27;, () =&gt; {
+121	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+122	    window(c, 9, 200, 0, 200);
+123	    expect(c.currentLimit()).toBe(12);
+124	    c.shouldAdmit(11, 100);
+125	    for (let i = 0; i &lt; 20; i++) c.onComplete(10_000, 100 + i * 5, null); // clients gave up; no service time known
+126	    c.onTick(200, 20);
+127	    expect(c.currentLimit()).toBe(Math.floor(12 * AIMD_PRESETS.stable.backoffRatio));
+128	    window(c, 8, 200, 200, 200); // healthy again: judged against the 200 ms baseline, not the 10 s window
+129	    expect(c.currentLimit()).toBe(Math.floor(12 * AIMD_PRESETS.stable.backoffRatio) + AIMD_PRESETS.stable.increaseStep);
+130	  });
+131	
+132	  it(&#x27;holds its limit until it has seen at least one request served to completion&#x27;, () =&gt; {
+133	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+134	    c.shouldAdmit(9, 0);
+135	    for (let i = 0; i &lt; 20; i++) c.onComplete(10_000, i * 5, null);
+136	    c.onTick(100, 20);
+137	    expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
+138	  });
+139	
+140	  for (const [name, make] of STABLE) {
+141	    it(`${name} Stable stays near capacity under three minutes of saturating load (no baseline drift)`, () =&gt; {
+142	      // 300 rps on 50 workers: in flight sits at the limit, so growth is allowed; only the baseline can
+143	      // stop it. With a latency baseline the queue wait leaked into it and the limit drifted to 100–200.
+144	      const sim = mk(make());
+145	      for (let minute = 1; minute &lt;= 3; minute++) {
+146	        const m = run(sim, 60);
+147	        expect(m.limit!).toBeGreaterThan(45);
+148	        expect(m.limit!).toBeLessThan(80);
+149	        expect(m.p99LatencyMs).toBeLessThan(500);
+150	      }
+151	    });
+152	  }
+153	});
+154	
+155	describe(&#x27;lesson 4 scenario: capacity drop&#x27;, () =&gt; {
+156	  for (const [name, make] of STABLE) {
+157	    it(`${name} backs off within seconds of the drop and is under the SLA with goodput by its end, where static 50 is not`, () =&gt; {
+158	      const a = mk(new ConcurrencyLimiter(50)), b = mk(make());
+159	      run(a, 10); run(b, 10);
+160	      a.triggerEvent(DROP); b.triggerEvent(DROP);
+161	      // Backing off from ~60 to ~12 in flight takes a few windows, so the first seconds of the drop are over
+162	      // the SLA for the adaptive run too; from t+5 s on it must be delivering every second.
+163	      run(a, 5); run(b, 5);
+164	      for (let s = 0; s &lt; 3; s++) {
+165	        const ma = run(a, 1), mb = run(b, 1);
+166	        expect(ma.availability).toBeLessThan(0.05);
+167	        expect(mb.goodputRps).toBeGreaterThan(20);
+168	      }
+169	      const mb = run(b, 0.02); // one tick: the state at the end of the 8 s sampled window
+170	      expect(mb.limit!).toBeLessThan(35);
+171	      expect(mb.p99LatencyMs).toBeLessThan(BACKEND.slaMs);
+172	      expect(mb.goodputRps).toBeGreaterThan(30);
+173	      const after = run(b, 15);
+174	      expect(after.limit!).toBeGreaterThan(40); // recovers toward capacity
+175	    });
+176	  }
+177	});
+178	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-06-49-285Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-06-49-285Z" class="timestamp-link"><time datetime="2026-09-16T05:06:49.285Z" data-timestamp="2026-09-16T05:06:49.285Z">2026-09-16T05:06:49.285Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_019T2bkQez2BFLBEeyGL1aYY">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Locate the RATIONALE baseline bullets and the Lesson 4 intro</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;processing time\|Baseline\|baseline&#34; docs/RATIONALE.md | cut -c1-220; echo &#34;--- lesson4 intro ---&#34;; grep -n &#34;intro=&#34; src/lessons/Lesson4.tsx | cut -c1-400</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-06-49-331Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-06-49-331Z" class="timestamp-link"><time datetime="2026-09-16T05:06:49.331Z" data-timestamp="2026-09-16T05:06:49.331Z">2026-09-16T05:06:49.331Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>18:- **Backend = FIFO worker pool with variable service times; the thrashing penalty was removed.** The first version added an extra slowdown proportional to oversubscription so that throughput *collapsed* past capacity.
+24:- **The adaptive baseline is processing time, not latency.** The engine reports each completion&#x27;s latency and, separately, the time it spent holding a worker; the limiters build their baseline from the latter (min of 
+25:- **An adaptive limit only grows if at least half of it was in use during the window.** Healthy latency on its own is not evidence that a higher limit is safe — a lightly loaded backend reports healthy latency at any 
+--- lesson4 intro ---
+48:      intro=&quot;Instead of guessing a limit, measure it. Both algorithms compare request latency with the time the backend actually spends serving a request: when latency exceeds it, requests are waiting for a worker, so the limit shrinks; when nothing is waiting and at least half the limit is in use, the limit probes upward. Same capacity drop as before.&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-06-53-487Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-06-53-487Z" class="timestamp-link"><time datetime="2026-09-16T05:06:53.487Z" data-timestamp="2026-09-16T05:06:53.487Z">2026-09-16T05:06:53.487Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01BE9Zqy5gwNHg3EmbTQLK4f">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Read the full processing-time baseline bullet in RATIONALE</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">sed -n &#39;24p&#39; docs/RATIONALE.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-06-53-527Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-06-53-527Z" class="timestamp-link"><time datetime="2026-09-16T05:06:53.527Z" data-timestamp="2026-09-16T05:06:53.527Z">2026-09-16T05:06:53.527Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>- **The adaptive baseline is processing time, not latency.** The engine reports each completion&#x27;s latency and, separately, the time it spent holding a worker; the limiters build their baseline from the latter (min of the last 30 window averages) and compare the window&#x27;s mean latency against it. The excess is queue wait — the same &quot;queue delay&quot; signal Vegas and CoDel use. The first version used the min of window-average *latency*, and under sustained saturating load it never observed a queue-free window, so the baseline crept up with the queue and the limit drifted toward the maximum over minutes (AIMD Stable 60–95, Gradient Stable to 200); a periodic no-load probe would have been the alternative, but it costs throughput and a simulator can simply measure what a real server also knows. Processing time is unaffected by queue depth in this model, so the drift is gone; the bounded memory now only serves to let the baseline follow a genuine change in the backend&#x27;s speed. Two consequences: a downstream slowdown looks like congestion until the baseline catches up (~15 s), so the limiter over-shrinks briefly — the same blind spot every latency-based limiter has; and a request the client abandoned has no known service time, so such windows are judged against the last baseline, and a limiter that has never seen a completed request holds its limit.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-00-563Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-00-563Z" class="timestamp-link"><time datetime="2026-09-16T05:07:00.563Z" data-timestamp="2026-09-16T05:07:00.563Z">2026-09-16T05:07:00.563Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01FKo7HDTR4YJidq9E99dYjF">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">// Baseline = min of recent window averages of *processing* time (time holding a worker, excluding queue
+// wait). Queueing therefore never leaks into the baseline, however long it lasts; the bounded memory only
+// lets the baseline follow a change in the backend&#39;s own speed after `windows` windows.
+class BaselineTracker {
+  private hist: number[] = [];
+  constructor(private readonly windows = 30) {}
+  push(v: number): void {
+    this.hist.push(v);
+    if (this.hist.length &gt; this.windows) this.hist.shift();
+  }
+  current(): number | null { return this.hist.length ? Math.min(...this.hist) : null; }
+}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">// Baseline = mean *processing* time (time holding a worker, excluding queue wait) over the last few windows.
+// Queueing never leaks into it, however long it lasts, and it follows the backend&#39;s own speed within a
+// window or two — so a slower dependency raises the baseline with the latency and does not read as
+// congestion. The short memory only smooths per-window sampling noise.
+class BaselineTracker {
+  private hist: number[] = [];
+  constructor(private readonly windows = 3) {}
+  push(v: number): void {
+    this.hist.push(v);
+    if (this.hist.length &gt; this.windows) this.hist.shift();
+  }
+  current(): number | null { return this.hist.length ? this.hist.reduce((a, b) =&gt; a + b, 0) / this.hist.length : null; }
+}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-00-588Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-00-588Z" class="timestamp-link"><time datetime="2026-09-16T05:07:00.588Z" data-timestamp="2026-09-16T05:07:00.588Z">2026-09-16T05:07:00.588Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-11-956Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-11-956Z" class="timestamp-link"><time datetime="2026-09-16T05:07:11.956Z" data-timestamp="2026-09-16T05:07:11.956Z">2026-09-16T05:07:11.956Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Hp73cgZsKXxLMAqnz7J3xQ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  it(&#39;holds its limit until it has seen at least one request served to completion&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    c.shouldAdmit(9, 0);
+    for (let i = 0; i &lt; 20; i++) c.onComplete(10_000, i * 5, null);
+    c.onTick(100, 20);
+    expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
+  });</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  it(&#39;holds its limit until it has seen at least one request served to completion&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    c.shouldAdmit(9, 0);
+    for (let i = 0; i &lt; 20; i++) c.onComplete(10_000, i * 5, null);
+    c.onTick(100, 20);
+    expect(c.currentLimit()).toBe(10); // nothing to compare 10 s against yet
+  });
+
+  it(&#39;follows a slower backend within a few windows, so a slowdown with no queueing is not congestion&#39;, () =&gt; {
+    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+    for (let w = 0; w &lt; 5; w++) window(c, 9, 200, w * 100, 200);
+    const before = c.currentLimit();
+    // The dependency gets 3× slower: latency and processing time triple together, nothing waits for a worker.
+    for (let w = 5; w &lt; 10; w++) window(c, 9, 600, w * 100, 600);
+    expect(c.currentLimit()).toBeGreaterThanOrEqual(before); // never backed off
+    // Real queueing on top of the slow backend still reads as congestion.
+    window(c, 9, 1800, 1000, 600);
+    expect(c.currentLimit()).toBeLessThan(before);
+  });
+
+  for (const [name, make] of STABLE) {
+    it(`${name} Stable does not shrink through a downstream slowdown that leaves workers to spare`, () =&gt; {
+      // 100 rps at 3× service time needs ~60 in flight on a 50-worker backend... too much; use 60 rps so the
+      // slowdown needs ~36 workers: latency triples, but nobody queues, and the limit must not collapse.
+      const sim = new Simulation({ backend: BACKEND, load: { kind: &#39;sustained&#39;, baseRps: 60, peakRps: 60 }, controller: make(), seed: 1 });
+      const before = run(sim, 10).limit!;
+      sim.triggerEvent({ kind: &#39;serviceTime&#39;, multiplier: 3, durationMs: 10_000 });
+      let lowest = Infinity;
+      for (let s = 0; s &lt; 10; s++) lowest = Math.min(lowest, run(sim, 1).limit!);
+      expect(lowest).toBeGreaterThanOrEqual(before * 0.8); // at most one spurious backoff step while the baseline catches up
+    });
+  }</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-12-018Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-12-018Z" class="timestamp-link"><time datetime="2026-09-16T05:07:12.018Z" data-timestamp="2026-09-16T05:07:12.018Z">2026-09-16T05:07:12.018Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-13-344Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-13-344Z" class="timestamp-link"><time datetime="2026-09-16T05:07:13.344Z" data-timestamp="2026-09-16T05:07:13.344Z">2026-09-16T05:07:13.344Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01NMWF6WHUczZkcuXW9ozduT">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Run the adaptive tests with the short baseline memory and the new slowdown tests</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npx vitest run src/sim/adaptive.test.ts 2&gt;&amp;1 | grep -E &#34;×|Tests |AssertionError|expected&#34; | head -12</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-17-744Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-17-744Z" class="timestamp-link"><time datetime="2026-09-16T05:07:17.744Z" data-timestamp="2026-09-16T05:07:17.744Z">2026-09-16T05:07:17.744Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>      Tests  20 passed (20)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-25-597Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-25-597Z" class="timestamp-link"><time datetime="2026-09-16T05:07:25.597Z" data-timestamp="2026-09-16T05:07:25.597Z">2026-09-16T05:07:25.597Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-25-610Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-25-610Z" class="timestamp-link"><time datetime="2026-09-16T05:07:25.610Z" data-timestamp="2026-09-16T05:07:25.610Z">2026-09-16T05:07:25.610Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>All 20 adaptive tests pass with the 3-window mean, including the new slowdown tests. I'll clean up a test comment, update the RATIONALE bullet, then run full verification, commit, push, update the PR body, and return to your branch.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-26-601Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-26-601Z" class="timestamp-link"><time datetime="2026-09-16T05:07:26.601Z" data-timestamp="2026-09-16T05:07:26.601Z">2026-09-16T05:07:26.601Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01BfdsUjxULxpP3R8TUG3ueM">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      // 100 rps at 3× service time needs ~60 in flight on a 50-worker backend... too much; use 60 rps so the
+      // slowdown needs ~36 workers: latency triples, but nobody queues, and the limit must not collapse.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      // 60 rps at 3× service time needs ~36 of the 50 workers: latency triples but nobody queues, so the
+      // limit must not collapse. (100 rps would need 60 workers and genuinely queue.)</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-26-647Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-26-647Z" class="timestamp-link"><time datetime="2026-09-16T05:07:26.647Z" data-timestamp="2026-09-16T05:07:26.647Z">2026-09-16T05:07:26.647Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-28-541Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-28-541Z" class="timestamp-link"><time datetime="2026-09-16T05:07:28.541Z" data-timestamp="2026-09-16T05:07:28.541Z">2026-09-16T05:07:28.541Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_013TX2BwAsHLEsbb8jwxYyb2">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">RATIONALE.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">the limiters build their baseline from the latter (min of the last 30 window averages) and compare the window&#39;s mean latency against it.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">the limiters build their baseline from the latter (mean of the last 3 window averages) and compare the window&#39;s mean latency against it.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-28-607Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-28-607Z" class="timestamp-link"><time datetime="2026-09-16T05:07:28.607Z" data-timestamp="2026-09-16T05:07:28.607Z">2026-09-16T05:07:28.607Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md has been updated successfully. (note: the file had been modified on disk since you last read it — the edit applied cleanly, but the file contains other changes not in your context. Read it before edits that depend on surrounding content.)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-34-731Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-34-731Z" class="timestamp-link"><time datetime="2026-09-16T05:07:34.731Z" data-timestamp="2026-09-16T05:07:34.731Z">2026-09-16T05:07:34.731Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01NAt1WrQGQCgXLFVRc1iWfe">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">RATIONALE.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">Processing time is unaffected by queue depth in this model, so the drift is gone; the bounded memory now only serves to let the baseline follow a genuine change in the backend&#39;s speed. Two consequences: a downstream slowdown looks like congestion until the baseline catches up (~15 s), so the limiter over-shrinks briefly — the same blind spot every latency-based limiter has; and a request the client abandoned has no known service time, so such windows are judged against the last baseline, and a limiter that has never seen a completed request holds its limit.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">Processing time is unaffected by queue depth in this model, so the drift is gone. The memory is deliberately short: a first cut kept the old 30-window *min*, which lagged a genuine backend slowdown by ~15 s and made the limiter over-shrink through it even though nothing was queueing. With a 3-window mean the baseline follows the backend&#39;s speed within about a second, so a slow dependency raises latency and baseline together and is not treated as congestion — shrinking a concurrency limit cannot make a dependency faster, it only cuts throughput — while a capacity drop still is, because queue wait grows against an unchanged baseline. The min was only ever needed to fish no-load latency out of a queueing signal; measured processing time is no-load by construction. Remaining edge cases: a request the client abandoned has no known service time, so such windows are judged against the last baseline, and a limiter that has never seen a completed request holds its limit.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-34-805Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-34-805Z" class="timestamp-link"><time datetime="2026-09-16T05:07:34.805Z" data-timestamp="2026-09-16T05:07:34.805Z">2026-09-16T05:07:34.805Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-37-472Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-37-472Z" class="timestamp-link"><time datetime="2026-09-16T05:07:37.472Z" data-timestamp="2026-09-16T05:07:37.472Z">2026-09-16T05:07:37.472Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01UhWxcVqrznZwXtweUYs2fV">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Lint, build, full suite, and check for stale references to the 30-window min</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error&#34;; echo &#34;--- build ---&#34;; npm run build 2&gt;&amp;1 | grep -E &#34;error|✓ built&#34;; echo &#34;--- test ---&#34;; npm test 2&gt;&amp;1 | grep -E &#34;×|Test Files|Tests |AssertionError|expected&#34; | head -12; echo &#34;--- leftovers ---&#34;; grep -rn &#34;30 window\|last 30\|~15 s\|min of&#34; docs/RATIONALE.md src/sim/adaptive.ts src/lessons/Lesson4.tsx | cut -c1-160; echo &#34;(end)&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-43-074Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-43-074Z" class="timestamp-link"><time datetime="2026-09-16T05:07:43.074Z" data-timestamp="2026-09-16T05:07:43.074Z">2026-09-16T05:07:43.074Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- build ---
+src/sim/adaptive.test.ts(146,53): error TS2345: Argument of type &#x27;number | null&#x27; is not assignable to parameter of type &#x27;number | bigint&#x27;.
+src/sim/adaptive.test.ts(149,43): error TS2345: Argument of type &#x27;number | null&#x27; is not assignable to parameter of type &#x27;number | bigint&#x27;.
+--- test ---
+ Test Files  6 passed (6)
+      Tests  74 passed (74)
+--- leftovers ---
+docs/RATIONALE.md:24:- **The adaptive baseline is processing time, not latency.** The engine reports each completion&#x27;s latency and, separately, the time it spen
+(end)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-49-261Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-49-261Z" class="timestamp-link"><time datetime="2026-09-16T05:07:49.261Z" data-timestamp="2026-09-16T05:07:49.261Z">2026-09-16T05:07:49.261Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-49-267Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-49-267Z" class="timestamp-link"><time datetime="2026-09-16T05:07:49.267Z" data-timestamp="2026-09-16T05:07:49.267Z">2026-09-16T05:07:49.267Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Build caught a typing slip in my new unit test (<code>currentLimit()</code> on the interface is <code>number | null</code>). Fixing, then re-verifying and shipping.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-51-325Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-51-325Z" class="timestamp-link"><time datetime="2026-09-16T05:07:51.325Z" data-timestamp="2026-09-16T05:07:51.325Z">2026-09-16T05:07:51.325Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Y8D18Sfp5Pacy9x4MPndQ6">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    for (let w = 0; w &lt; 5; w++) window(c, 9, 200, w * 100, 200);
+    const before = c.currentLimit();</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    for (let w = 0; w &lt; 5; w++) window(c, 9, 200, w * 100, 200);
+    const before = c.currentLimit()!;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-51-346Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-51-346Z" class="timestamp-link"><time datetime="2026-09-16T05:07:51.346Z" data-timestamp="2026-09-16T05:07:51.346Z">2026-09-16T05:07:51.346Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-07-52-876Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-07-52-876Z" class="timestamp-link"><time datetime="2026-09-16T05:07:52.876Z" data-timestamp="2026-09-16T05:07:52.876Z">2026-09-16T05:07:52.876Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01RxoMQEnXXau2xXebUZPABH">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Re-run lint, build, and the full suite</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error&#34;; echo &#34;--- build ---&#34;; npm run build 2&gt;&amp;1 | grep -E &#34;error|✓ built&#34;; echo &#34;--- test ---&#34;; npm test 2&gt;&amp;1 | grep -E &#34;×|Test Files|Tests &#34; | head -5</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-07-58-301Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-07-58-301Z" class="timestamp-link"><time datetime="2026-09-16T05:07:58.301Z" data-timestamp="2026-09-16T05:07:58.301Z">2026-09-16T05:07:58.301Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- build ---
+✓ built in 70ms
+--- test ---
+ Test Files  6 passed (6)
+      Tests  74 passed (74)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-08-06-201Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-08-06-201Z" class="timestamp-link"><time datetime="2026-09-16T05:08:06.201Z" data-timestamp="2026-09-16T05:08:06.201Z">2026-09-16T05:08:06.201Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01B6jgKgFPXEnj37mZdn51a4">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit and push the baseline-memory change, then fetch the PR 9 body</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add src/sim/adaptive.ts src/sim/adaptive.test.ts docs/RATIONALE.md &amp;&amp; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+fix(sim): track the processing-time baseline with a 3-window mean, not a 30-window min
+
+The min over 30 windows lagged a genuine backend slowdown by ~15 s, so the
+limiter read the slower service time as queueing and over-shrank through it.
+Measured processing time is already free of queue wait, so a short mean is
+enough: the baseline follows the backend within a second, a slow dependency
+no longer triggers backoff, and a capacity drop still does. Tests cover both.
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; &amp;&amp; git -c credential.helper=&#39;!gh auth git-credential&#39; push -q origin feat/processing-time-baseline 2&gt;&amp;1 | grep -v &#34;^remote:&#34;; git log --oneline | head -2; gh pr view 9 --json body --jq .body</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-08-10-120Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-08-10-120Z" class="timestamp-link"><time datetime="2026-09-16T05:08:10.120Z" data-timestamp="2026-09-16T05:08:10.120Z">2026-09-16T05:08:10.120Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>f448ebe fix(sim): track the processing-time baseline with a 3-window mean, not a 30-window min
+09fc204 fix(sim): build the adaptive baseline from processing time, not latency
+## Summary
+
+The engine now measures each request&#x27;s queue wait and processing time (time holding a worker) separately, and `AdmissionController.onComplete` receives the service time alongside the latency (`null` when the client abandoned the request). `AimdLimiter`/`GradientLimiter` build their baseline from the min of window-average *service* time and compare each window&#x27;s mean latency against it, so the congestion signal is queue wait. `TickMetrics` gains `meanWaitMs` and `meanServiceMs` (not yet shown in the UI). Open `src/sim/adaptive.ts` (`BaselineTracker`, `onTick`) and `src/sim/engine.ts` (`step()`) first.
+
+## Motivation
+
+Both limiters used the min of window-average *latency* as their &quot;no-load&quot; baseline. Under sustained saturating load (Lesson 4&#x27;s default 300 rps) in-flight sits at the limit, every window carries queue wait, the baseline creeps up with it, and the limit drifts toward `maxLimit` over minutes — AIMD Stable wandered 60–95, Gradient Stable reached 200 by ~2 min (flagged on PRs #6 and #8). Processing time does not depend on queue depth, so a baseline built from it cannot drift; the alternative — a periodic no-load probe window — costs throughput, and a simulator can simply measure what a real server also knows.
+
+Behaviour after the change (seed 42, 300 rps, 180 s, no event): AIMD Stable 52–60, Gradient Stable 62–64, p99 ~340 ms. The Lesson 4 capacity-drop trajectory is unchanged. Two consequences, recorded in `docs/RATIONALE.md`: a downstream slowdown looks like congestion until the 30-window baseline catches up (~15 s), so the limiter over-shrinks briefly — the blind spot every latency-based limiter has, and not wired to a lesson; and windows whose completions were all abandoned are judged against the last known baseline, while a limiter that has never seen a completed request holds its limit.
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 71 tests pass (7 new)
+- [ ] Verified in the browser — copy-only UI change (Lesson 4 intro sentence); metrics fields are not rendered yet
+- [ ] `/code-review` — not run: this branch was produced by a single-shot worker without subagent access. Please run `/code-review` on the PR before merging.
+
+New tests: engine reports service time in 140–280 ms for served requests even when latency includes seconds of queue wait, and `null` for abandoned ones; `meanWaitMs`/`meanServiceMs` split mean latency; AIMD backs off to `minLimit` and Gradient to its floor under 40 windows of 800 ms latency / 200 ms service (a latency baseline would have absorbed the wait); an all-abandoned window keeps the previous baseline and still backs off; a limiter with no completed request yet holds; both Stable presets stay within 45–80 with p99 &lt; 500 ms at 1, 2 and 3 minutes of saturating load. Existing tests updated only for the new `onComplete` argument (the `window()` helper takes a `serviceMs`, default 200). Lesson 4 scenario assertions unchanged and passing.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-08-25-831Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-08-25-831Z" class="timestamp-link"><time datetime="2026-09-16T05:08:25.831Z" data-timestamp="2026-09-16T05:08:25.831Z">2026-09-16T05:08:25.831Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_012LEnPgzuLmy3ZDceespDzS">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Update the PR 9 body and return to the docs branch</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">gh pr edit 9 --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+The engine now measures each request&#39;s queue wait and processing time (time holding a worker) separately, and `AdmissionController.onComplete` receives the service time alongside the latency (`null` when the client abandoned the request). `AimdLimiter`/`GradientLimiter` build their baseline from window-average *service* time (mean of the last 3 windows) and compare each window&#39;s mean latency against it, so the congestion signal is queue wait. `TickMetrics` gains `meanWaitMs` and `meanServiceMs` (not yet shown in the UI). Open `src/sim/adaptive.ts` (`BaselineTracker`, `onTick`) and `src/sim/engine.ts` (`step()`) first.
+
+## Motivation
+
+Both limiters used the min of window-average *latency* as their &#34;no-load&#34; baseline. Under sustained saturating load (Lesson 4&#39;s default 300 rps) in-flight sits at the limit, every window carries queue wait, the baseline creeps up with it, and the limit drifts toward `maxLimit` over minutes — AIMD Stable wandered 60–95, Gradient Stable reached 200 by ~2 min (flagged on PRs #6 and #8). Processing time does not depend on queue depth, so a baseline built from it cannot drift; the alternative — a periodic no-load probe window — costs throughput, and a simulator can simply measure what a real server also knows.
+
+Behaviour after the change (seed 42, 300 rps, 180 s, no event): AIMD Stable 52–60, Gradient Stable 62–64, p99 ~340 ms. The Lesson 4 capacity-drop trajectory is unchanged.
+
+## Review follow-up (commit 2)
+
+The first commit kept the old **30-window min** as the baseline memory. That was only ever needed to fish no-load latency out of a queueing signal; measured processing time is no-load by construction, so the min just made the baseline **lag a genuine backend slowdown by ~15 s**, during which the limiter read the slower service time as queueing and over-shrank. Commit 2 switches to a **3-window mean**: the baseline follows the backend within about a second, so a slow dependency raises latency and baseline together and does not trigger backoff (shrinking a concurrency limit cannot make a dependency faster — it only cuts throughput), while a capacity drop still does because queue wait grows against an unchanged baseline. Two new tests: a unit test where latency and service time triple together (no backoff) and then queueing appears on top (backoff); and a scenario where both Stable presets hold their limit within one step through a 3× slowdown at 60 rps (36 of 50 workers busy, nobody queueing). Remaining edge cases unchanged: all-abandoned windows are judged against the last baseline; a limiter with no completed request holds.
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 74 tests pass (10 new across both commits)
+- [ ] Verified in the browser — copy-only UI change (Lesson 4 intro sentence); metrics fields are not rendered yet
+- [ ] `/code-review` — not yet run on this branch; please run it before merging.
+
+New tests (commit 1): engine reports service time in 140–280 ms for served requests even when latency includes seconds of queue wait, and `null` for abandoned ones; `meanWaitMs`/`meanServiceMs` split mean latency; AIMD backs off to `minLimit` and Gradient to its floor under 40 windows of 800 ms latency / 200 ms service; an all-abandoned window keeps the previous baseline and still backs off; a limiter with no completed request yet holds; both Stable presets stay within 45–80 with p99 &lt; 500 ms at 1, 2 and 3 minutes of saturating load. Existing tests updated only for the new `onComplete` argument. Lesson 4 scenario assertions unchanged and passing.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; 2&gt;&amp;1 | tail -1; git checkout -q docs/code-review-before-pr &amp;&amp; git branch --show-current &amp;&amp; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-16T05-08-29-705Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-16T05-08-29-705Z" class="timestamp-link"><time datetime="2026-09-16T05:08:29.705Z" data-timestamp="2026-09-16T05:08:29.705Z">2026-09-16T05:08:29.705Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>https://github.com/utsavjain0511/adaptive-limits-simulator/pull/9
+docs/code-review-before-pr
+?? AGENTS.md</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-16T05-08-39-846Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-16T05-08-39-846Z" class="timestamp-link"><time datetime="2026-09-16T05:08:39.846Z" data-timestamp="2026-09-16T05:08:39.846Z">2026-09-16T05:08:39.846Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>PR #9 is updated with a second commit (<code>f448ebe</code>); your tree is back on <code>docs/code-review-before-pr</code>, clean apart from your untracked <code>AGENTS.md</code>. (The "changed on disk" notes are that branch's older files.)</p>
+<p><strong>What changed</strong> — <code>BaselineTracker</code> now holds the <strong>mean of the last 3 windows'</strong> processing time instead of the min of 30. Measured processing time is already free of queue wait, so the min had nothing left to do except lag: a 3× downstream slowdown made the limiter read the slower service time as queueing and over-shrink for ~15 s. Now the baseline follows the backend within about a second, a slow dependency raises latency and baseline together (no backoff — shrinking a concurrency limit can't make a dependency faster), and a capacity drop still triggers backoff because wait grows against an unchanged baseline.</p>
+<p><strong>Tests</strong> — 74/74, lint and build clean. Two new:
+- unit: latency and service time triple together → no backoff; queueing then appears on top → backoff;
+- scenario: both Stable presets hold their limit within one step through a 3× slowdown at 60 rps (36 of 50 workers busy, nobody queueing).</p>
+<p>The RATIONALE bullet now explains why the min was retired; the PR body has a "Review follow-up" section and still asks for <code>/code-review</code> before merge — neither commit on #9 has had one yet.</p>
+<p><strong>Where things stand:</strong>
+- <strong>#8</strong> (utilisation guard) and <strong>#9</strong> (processing-time baseline) are both open, both off <code>main</code>, independent — merge in either order. Note #9's <code>onComplete</code> signature change (<code>serviceMs</code> third argument) means if #8 merges first, #9 will need a trivial rebase; the reverse needs none.
+- Yours: add <code>refactor</code> to CLAUDE.md's prefix list on the docs branch, and run <code>/code-review 9</code> when you're ready.</p></div></div></div>
+<div class="message user" id="msg-2026-09-16T05-11-11-683Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-16T05-11-11-683Z" class="timestamp-link"><time datetime="2026-09-16T05:11:11.683Z" data-timestamp="2026-09-16T05:11:11.683Z">2026-09-16T05:11:11.683Z</time></a></div><div class="message-content">
+<div class="user-content"><p><local-command-caveat>Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user explicitly asks you to.</local-command-caveat></p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-009.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<span class="current">10</span>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-011.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

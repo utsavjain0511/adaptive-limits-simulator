@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 9</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 9/12</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-008.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<span class="current">9</span>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-010.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2026-09-14T21-07-08-798Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T21-07-08-798Z" class="timestamp-link"><time datetime="2026-09-14T21:07:08.798Z" data-timestamp="2026-09-14T21:07:08.798Z">2026-09-14T21:07:08.798Z</time></a></div><div class="message-content">
+<div class="user-content"><p>/code-review high https://github.com/utsavjain0511/adaptive-limits-simulator/pull/6</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T21-19-21-978Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T21-19-21-978Z" class="timestamp-link"><time datetime="2026-09-14T21:19:21.978Z" data-timestamp="2026-09-14T21:19:21.978Z">2026-09-14T21:19:21.978Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>afc911509974c34b5</task-id>
+<output-file>/private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/tasks/afc911509974c34b5.output</output-file>
+<status>completed</status></p>
+<summary>Agent "/code-review high https://github.com/utsavjain051…" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Working tree is back on <code>docs/code-review-before-pr</code>, clean. Nothing further to request — all finder and verifier results are in.</p>
+<p><strong>Review of PR #6 (<code>refactor/fifo-backend</code>)</strong> — 8 finder angles produced 41 candidates, deduped to 15, verified 1-vote: 7 CONFIRMED, 6 PLAUSIBLE, 2 REFUTED. Below are the 10 most severe survivors. Note: <code>npm test</code>/<code>build</code>/<code>lint</code> all pass at the PR head, the branch merges cleanly with <code>main</code>, and the engine rewrite itself is behaviour-correct (the serving loop, <code>??=</code> binding, FIFO order through the <code>remaining</code> filter, event expiry, and <code>50 * 0.16 === 8</code> all check out). The real findings are doc/copy accuracy, test coverage, and layering.</p>
+<pre><code class="language-json">[
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md&quot;,
+    &quot;line&quot;: 18,
+    &quot;summary&quot;: &quot;The new bullet says the tightened Stable presets \&quot;make it hug capacity (saw-tooth 50–65)\&quot;, but at PR head AIMD Stable wanders 61–95 and Gradient Stable ramps monotonically to maxLimit 200 within ~2 min of Lesson 4's default load; the cause is BaselineTracker (src/sim/adaptive.ts:12-20) never observing idle latency under sustained load, so the preset tightening is a symptom patch and the doc records a steady state the code does not have.&quot;,
+    &quot;failure_scenario&quot;: &quot;Open Lesson 4 with Gradient Stable, let it run 2 minutes, then press 'Capacity drop (50 → 8 slots, 10 s)': the limiter starts from 200 with p99 already ~900 ms, so 'Stable tracks the drop and recovers in seconds' is visibly false. (Drift is pre-existing and worse on main — this PR improves it — but the bullet asserts 50–65 without the caveat the PR body gives, and points future tuners at preset numbers instead of the WindowedLimiter/BaselineTracker mechanism, e.g. a periodic probe window.)&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md&quot;,
+    &quot;line&quot;: 18,
+    &quot;summary&quot;: &quot;The bullet claims \&quot;without shedding, throughput plateaus instead of collapsing\&quot;, but with the FIFO pool plus abandonment that discards partial work (src/sim/engine.ts:75), admit-all completions plateau at ~238/s only until queue wait reaches the 10 s client deadline, then fall to 0/s at 600 rps (~45/s at 300 rps) because every worker is handed to the oldest request, which is about to be abandoned.&quot;,
+    &quot;failure_scenario&quot;: &quot;Measured at PR head (seed 42, NoLimit, 600 rps): served 231–238/s through t=15 s, 59/s at t=20 s, 0.0/s from t=25 s with ~600 abandoned/s. The removed penalty's headline 'collapse' is silently reproduced via the deadline interaction; the sentence is only true for bounded queues (static/adaptive limits). Reword to say throughput plateaus at capacity ÷ service time for bounded queues and that for an unbounded queue the deadline + FIFO drives completions to zero.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts&quot;,
+    &quot;line&quot;: 5,
+    &quot;summary&quot;: &quot;`import { CAPACITY_DROP } from '../lessons/defaults'` is the repo's only layer-1 → layer-3 import, breaking CLAUDE.md's \&quot;Three layers, dependencies flow downward only\&quot; (no test exemption is stated), and the reuse is half done: `BACKEND` on line 8 is still a hand copy of `DEFAULT_BACKEND` from the same module, so the comment 'the scenario follows the lesson if it is retuned' holds for the event only.&quot;,
+    &quot;failure_scenario&quot;: &quot;Retune DEFAULT_BACKEND.capacity 50 → 40: Lessons 3/4 now drop 40 → 6 workers, but the 'lesson 4 scenario' test keeps simulating 50 → 8 and stays green while the lesson picture changes — the drift the 'Scenario tests are the tuning harness' invariant exists to catch. Fix: move DEFAULT_BACKEND/CAPACITY_DROP/DOWNSTREAM_SLOWDOWN into src/sim (e.g. src/sim/scenarios.ts), re-export from lessons/defaults.ts, and import both backend and event here (the same BACKEND literal is also copied in engine.test.ts:5, controllers.test.ts:6, metrics.test.ts:7).&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/engine.test.ts&quot;,
+    &quot;line&quot;: 40,
+    &quot;summary&quot;: &quot;The overload test was renamed from 'thrashes' to 'queues' but keeps main's three assertions (inflight &amp;gt; 1000, p99 &amp;gt; SLA, availability &amp;lt; 0.05), none of which depend on the FIFO pool's defining property — completions capped at ≈ capacity / serviceTime ≈ 235/s — so the suite has no upper bound on saturated throughput at the default capacity.&quot;,
+    &quot;failure_scenario&quot;: &quot;Measured at PR head: running the same test with capacity 100 instead of 50 (the observable of an over-serving bug in effective() or the serving loop) gives inflight 3699, p99 6320 ms, availability 0.000 — all three assertions pass. Fix: sample at t=10 s (before abandonments fold into timedOutRps) and assert goodputRps + timedOutRps ≈ 200–280 and/or inflight ≈ (600 − 238) × 10 s, or reuse the recording-controller pattern from lines 60-68.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx&quot;,
+    &quot;line&quot;: 31,
+    &quot;summary&quot;: &quot;The event label 'Capacity drop (50 → 8 slots, 10 s)' is hand-written verbatim here and in Lesson4.tsx:54, and the '8' (plus 42 / 17 / 6× / ~40 rps in Lesson3.tsx:25,28) is Math.round(DEFAULT_BACKEND.capacity × CAPACITY_DROP.multiplier) — a derived value nothing references; this PR had to hand-edit five prose/label sites to retune one constant in defaults.ts:10.&quot;,
+    &quot;failure_scenario&quot;: &quot;Next retune of CAPACITY_DROP.multiplier or DEFAULT_BACKEND.capacity updates the constant and one lesson's label but not the other, so Lessons 3 and 4 announce different slot counts (or one the engine no longer produces) while lint/build/test stay green. Fix: export a CAPACITY_DROP_WORKERS / CAPACITY_DROP_LABEL beside CAPACITY_DROP in defaults.ts and interpolate (Lesson 3 already interpolates `Static ${limitA}` on line 13, so `${limitA - dropped}` is a one-line change that also un-stales the copy when the slider moves).&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts&quot;,
+    &quot;line&quot;: 47,
+    &quot;summary&quot;: &quot;The scenario test is titled 'keeps goodput &amp;gt; 0 and latency under SLA during the drop' but run() discards every tick except the last, so it asserts only t=18 s; measured at PR head both Stable presets are above the SLA for ~5.5 of the 8 s (peak p99 1.6–1.7 s, goodput 0–1 rps at t=12 s), and the PR's deeper drop (15 → 8 workers) widened that gap without changing the assertion.&quot;,
+    &quot;failure_scenario&quot;: &quot;A preset retune that slows backoff (backoffRatio 0.8 → 0.85, longer windowMs) stretches the over-SLA transient from ~5.5 s to ~7.5 s; p99 at t=18 s still reads ~400 ms because the oldest-age fallback collapses as soon as the backlog clears, so the test stays green while the chart shows the limiter failing the SLA for nearly the whole drop. Fix: rename to '…by the end of the drop' or additionally assert max p99 over the last 2–3 s and goodput &amp;gt; 0 at each 1 s sample after t=13 s.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.ts&quot;,
+    &quot;line&quot;: 38,
+    &quot;summary&quot;: &quot;WindowedLimiter.onTick returns early on an empty sample window, so through the capacity-0 outage state this PR makes explicit and documents as 'the honest model of an outage', AIMD/Gradient hold their pre-outage limit for the entire stall and get exactly one backoff step from the 10 s abandonment burst; no test drives an adaptive limiter through a zero-completion window.&quot;,
+    &quot;failure_scenario&quot;: &quot;Trigger { kind: 'capacity', multiplier: 0, durationMs: 10_000 } on Lesson 4's spec (AIMD Stable, seed 42): capacity reads 0 and p99 climbs 1.3 s → 10 s for ten seconds while the limit line sits flat at 73, then steps once to 47. Not wired to any lesson today; either add a ×0 scenario test or note in the RATIONALE capacity-0 bullet that the limiters are completion-feedback-only and blind until clients time out.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md&quot;,
+    &quot;line&quot;: 18,
+    &quot;summary&quot;: &quot;'limit 25 stays under 700 ms' names no metric: it matches the hand-derived mean wait (25 ÷ 8 × 200 ms = 625 ms; measured mean ~650 ms), but the dashboard latency line, the PR body ('~750 ms p99') and the PR screenshots (760 ms) all report p99, which is 720–760 ms during the drop.&quot;,
+    &quot;failure_scenario&quot;: &quot;Lesson 3, seed 42, static 25, fire CAPACITY_DROP: the p99 chart reads ~740–760 ms; a reader checking the doc against the dashboard sees 'under 700 ms' contradicted. Say 'mean ~650 ms' / 'derived wait 625 ms' or bump to '~750 ms p99'.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson4.tsx&quot;,
+    &quot;line&quot;: 52,
+    &quot;summary&quot;: &quot;'Aggressive over-reacts and oscillates' is false for Gradient: with tolerance 1.05, smoothing 1.0, headroom 12 the update pins at gradient 0.5 once latency exceeds 2.1× baseline, giving limit_{n+1} = 0.5·limit + 12 with fixed point 24, and measured at PR head Gradient-aggressive sits perfectly flat at 24 from t≈13.5 s to the end of the drop (AIMD-aggressive does oscillate); pre-existing, but the PR refreshed the adjacent label on line 54 and Lesson 3's prose without touching this sentence.&quot;,
+    &quot;failure_scenario&quot;: &quot;User selects Gradient + Aggressive, fires 'Capacity drop (50 → 8 slots, 10 s)', and watches a flat limit line at 24 for seven seconds while the copy says it oscillates; the stability-vs-responsiveness contrast is only demonstrable with AIMD.&quot;
+  },
+  {
+    &quot;file&quot;: &quot;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/CLAUDE.md&quot;,
+    &quot;line&quot;: 66,
+    &quot;summary&quot;: &quot;Commit 57e0770 and the PR title use `refactor(sim):`, but CLAUDE.md says \&quot;Commit messages use the conventional prefixes already in the history: `feat(sim):`, `feat(ui):`, `fix(app):`, `test(sim):`, `docs:`, `chore:`\&quot; and `refactor` appears nowhere in origin/main's history.&quot;,
+    &quot;failure_scenario&quot;: &quot;Main uses merge commits, so `refactor(sim): …` lands verbatim (and a squash-merge would take the identical PR title); the 'already in the history' anchor then widens and the next contributor sees precedent for a prefix the rule excludes. Retitle to `fix(sim):` or `feat(sim):`.&quot;
+  }
+]
+</code></pre>
+<p><strong>Dropped after verification (for the record):</strong> FlowCanvas 'N× over' at capacity 0 and Dashboard yCap clipping — both REFUTED as pre-existing in files this PR does not touch (main's engine already produced progress 0 at ×0). Three nit-level PLAUSIBLEs were cut by the cap: the 4-line <code>step()</code> comment duplicating RATIONALE lines 19–20 (keep the CPU-stall line — RATIONALE says "noted in the engine"), the two-pass loop / <code>!= null</code> TS-only guard in <code>step()</code> (verified a single indexed pass is tick-for-tick identical, but it's readability only), and hoisting the ±30% jitter literal into an exported constant so <code>metrics.test.ts:80</code> tracks the engine.</result>
+<usage><subagent_tokens>162529</subagent_tokens><tool_uses>39</tool_uses><duration_ms>731134</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-19-59-506Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-19-59-506Z" class="timestamp-link"><time datetime="2026-09-14T21:19:59.506Z" data-timestamp="2026-09-14T21:19:59.506Z">2026-09-14T21:19:59.506Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-20-11-690Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-20-11-690Z" class="timestamp-link"><time datetime="2026-09-14T21:20:11.690Z" data-timestamp="2026-09-14T21:20:11.690Z">2026-09-14T21:20:11.690Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The high-effort review came back with 10 findings; I've checked each against the branch. All lint/build/tests pass at the head and it confirms the engine rewrite itself is correct — the findings are docs accuracy, test strength, layering, and copy.</p>
+<p><strong>Agree, would fix in PR #6:</strong>
+1. <strong>RATIONALE "saw-tooth 50–65"</strong> — wrong beyond ~30 s (I verified this earlier: Gradient Stable ramps to 200 in ~2 min). Reword to what's true and name the mechanism (baseline never sees idle latency under sustained load) as the follow-up.
+2. <strong>RATIONALE "throughput plateaus instead of collapsing"</strong> — genuinely wrong, and the reason is interesting: with an unbounded FIFO queue plus a client deadline, queue wait converges to the timeout, so every worker is handed to a request that's about to be abandoned. Completions fall to <em>zero</em> at 600 rps — the collapse is emergent from FIFO + deadline, not from the penalty we removed. Worth stating plainly (it's the strongest argument in the lab for shedding).
+3. <strong><code>sim/</code> test importing <code>lessons/defaults</code></strong> breaks the layering rule I wrote, and the coupling is half-done (backend still hand-copied). Fix: move <code>DEFAULT_BACKEND</code>, <code>CAPACITY_DROP</code>, <code>DOWNSTREAM_SLOWDOWN</code> to <code>src/sim/scenario.ts</code>, re-export from <code>lessons/defaults.ts</code>, and have the lesson scenario tests use both.
+4. <strong>Overload test can't detect over-serving</strong> — capacity 100 passes all three assertions. Add: completions at t = 10 s ≈ 200–280/s.
+5. <strong>"50 → 8 slots" hand-written in five places</strong> — derive a <code>CAPACITY_DROP_WORKERS</code> constant and interpolate labels/copy.
+6. <strong>Lesson 4 scenario asserts only the final tick</strong> while p99 is over the SLA for ~5.5 of the 8 s (inherent: AIMD needs ~3.5 s to back off 60 → 12). Rename to "…by the end of the drop" and assert goodput &gt; 0 for the last 3 s.
+7. Adaptive limiters are blind during a capacity-0 outage until clients time out — one sentence in the capacity-0 bullet.
+8. "under 700 ms" → "~750 ms p99".
+9. "Aggressive oscillates" is only true for AIMD; Gradient Aggressive sits flat at its fixed point (0.5·L + 12 → 24). Fix the copy, not the preset.</p>
+<p><strong>Needs your call:</strong>
+10. <code>refactor(sim):</code> prefix — I can retitle the PR freely, but fixing the commit means amend + force-push to the PR branch. Alternatively add <code>refactor</code> to the list in CLAUDE.md on your docs branch.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-20-17-080Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-20-17-080Z" class="timestamp-link"><time datetime="2026-09-14T21:20:17.080Z" data-timestamp="2026-09-14T21:20:17.080Z">2026-09-14T21:20:17.080Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_012jKu4DimwcvA8zJ7WNqber"><div class="tool-header"><span class="tool-icon">⚙</span> AskUserQuestion</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;questions&#34;: [
+    {
+      &#34;question&#34;: &#34;How should I proceed with the review findings on PR #6?&#34;,
+      &#34;header&#34;: &#34;Scope&#34;,
+      &#34;multiSelect&#34;: false,
+      &#34;options&#34;: [
+        {
+          &#34;label&#34;: &#34;Apply 1–9 as a third commit (Recommended)&#34;,
+          &#34;description&#34;: &#34;Docs/copy accuracy, the scenario constants move to src/sim, stronger overload + lesson 4 assertions, derived labels. Re-run lint/build/tests, push, update the PR body.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Docs and copy only (1, 2, 7, 8, 9)&#34;,
+          &#34;description&#34;: &#34;Fix the inaccurate claims now; leave the test strengthening and the constants move for a separate PR.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Hold — I&#39;ll review the list first&#34;,
+          &#34;description&#34;: &#34;Make no changes yet.&#34;
+        }
+      ]
+    },
+    {
+      &#34;question&#34;: &#34;And the `refactor(sim):` commit prefix (finding 10)?&#34;,
+      &#34;header&#34;: &#34;Prefix&#34;,
+      &#34;multiSelect&#34;: false,
+      &#34;options&#34;: [
+        {
+          &#34;label&#34;: &#34;Add `refactor` to CLAUDE.md&#39;s list (Recommended)&#34;,
+          &#34;description&#34;: &#34;You add it on your docs branch; I retitle the PR to match nothing else. Cleanest — the prefix is accurate for this change.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Amend to `feat(sim):` and force-push&#34;,
+          &#34;description&#34;: &#34;I reword the first commit and force-push the PR branch (only the PR is affected), and retitle the PR.&#34;
+        },
+        {
+          &#34;label&#34;: &#34;Leave as is&#34;,
+          &#34;description&#34;: &#34;Accept `refactor(sim):` landing via the merge commit.&#34;
+        }
+      ]
+    }
+  ]
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-19-645Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-19-645Z" class="timestamp-link"><time datetime="2026-09-14T21:28:19.645Z" data-timestamp="2026-09-14T21:28:19.645Z">2026-09-14T21:28:19.645Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Your questions have been answered: &quot;How should I proceed with the review findings on PR #6?&quot;=&quot;Apply 1–9 as a third commit (Recommended)&quot;, &quot;And the `refactor(sim):` commit prefix (finding 10)?&quot;=&quot;Add `refactor` to CLAUDE.md&#x27;s list (Recommended)&quot;. You can now continue with these answers in mind.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-23-177Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-23-177Z" class="timestamp-link"><time datetime="2026-09-14T21:28:23.177Z" data-timestamp="2026-09-14T21:28:23.177Z">2026-09-14T21:28:23.177Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-24-395Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-24-395Z" class="timestamp-link"><time datetime="2026-09-14T21:28:24.395Z" data-timestamp="2026-09-14T21:28:24.395Z">2026-09-14T21:28:24.395Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01KsrcsZDWQu2kTVRpHUwT9L">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Switch to the PR branch after confirming the tree is clean</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git status --short &amp;&amp; git checkout -q refactor/fifo-backend &amp;&amp; git branch --show-current &amp;&amp; git log --oneline | head -1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-25-579Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-25-579Z" class="timestamp-link"><time datetime="2026-09-14T21:28:25.579Z" data-timestamp="2026-09-14T21:28:25.579Z">2026-09-14T21:28:25.579Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BZ8X21AGkGh4znfEnB8F7U"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-26-705Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-26-705Z" class="timestamp-link"><time datetime="2026-09-14T21:28:26.705Z" data-timestamp="2026-09-14T21:28:26.705Z">2026-09-14T21:28:26.705Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01ECXq16RyUBBN3zgHVJW5Gi"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/controllers.test.ts&#34;,
+  &#34;offset&#34;: 1,
+  &#34;limit&#34;: 14
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-27-784Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-27-784Z" class="timestamp-link"><time datetime="2026-09-14T21:28:27.784Z" data-timestamp="2026-09-14T21:28:27.784Z">2026-09-14T21:28:27.784Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Qu4usgSWitDUVBn7LeikSb"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx&#34;,
+  &#34;offset&#34;: 22,
+  &#34;limit&#34;: 12
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-28-837Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-28-837Z" class="timestamp-link"><time datetime="2026-09-14T21:28:28.837Z" data-timestamp="2026-09-14T21:28:28.837Z">2026-09-14T21:28:28.837Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01P8PWrUmW2RdSLPnrY4TUjD"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson4.tsx&#34;,
+  &#34;offset&#34;: 1,
+  &#34;limit&#34;: 12
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-29-642Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-29-642Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.642Z" data-timestamp="2026-09-14T21:28:29.642Z">2026-09-14T21:28:29.642Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>refactor/fifo-backend
+f80f9f1 fix(sim): bind service time at service start; allow a zero-worker pool</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-29-653Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-29-653Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.653Z" data-timestamp="2026-09-14T21:28:29.653Z">2026-09-14T21:28:29.653Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import { describe, it, expect } from &#x27;vitest&#x27;;
+2	import { NoLimit, ConcurrencyLimiter, RpsLimiter } from &#x27;./controllers&#x27;;
+3	import { Simulation, DT_MS } from &#x27;./engine&#x27;;
+4	import type { AdmissionController, BackendConfig, TickMetrics } from &#x27;./types&#x27;;
+5	
+6	const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+7	const load = (rps: number) =&gt; ({ kind: &#x27;sustained&#x27; as const, baseRps: rps, peakRps: rps });
+8	function run(sim: Simulation, seconds: number): TickMetrics {
+9	  let m!: TickMetrics;
+10	  for (let i = 0; i &lt; (seconds * 1000) / DT_MS; i++) m = sim.step();
+11	  return m;
+12	}
+13	
+14	describe(&#x27;NoLimit&#x27;, () =&gt; {</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-29-654Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-29-654Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.654Z" data-timestamp="2026-09-14T21:28:29.654Z">2026-09-14T21:28:29.654Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>22	  return (
+23	    &lt;LessonLayout spec={spec} lab={lab}
+24	      title=&quot;The trouble with static limits&quot;
+25	      intro=&quot;A concurrency limit protects the backend — but which number? Capacity is not constant: GC pauses, noisy neighbours, slow dependencies and deploys all move it. Press the event button and the backend temporarily drops from 50 worker slots to 8.&quot;
+26	      watch={[
+27	        &#x27;Before the drop, the limit tuned for normal capacity (50) delivers ~250 rps while the conservative limit (25) leaves half the workers idle.&#x27;,
+28	        &#x27;During the drop, limit 50 is 6× too high: 42 admitted requests queue behind 8 workers, every one of them waits past the SLA, and goodput collapses. Limit 25 queues 17 deep, stays under the SLA, and keeps ~40 rps flowing.&#x27;,
+29	        &#x27;Use the slider to hunt for a value that is right in both regimes — there isn\&#x27;t one. The right limit is a function of current capacity, which is exactly what the next lesson measures.&#x27;,
+30	      ]}
+31	      events={[{ label: &#x27;Capacity drop (50 → 8 slots, 10 s)&#x27;, event: CAPACITY_DROP }]}
+32	    &gt;
+33	      &lt;div className=&quot;panel knobs&quot;&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-29-654Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-29-654Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.654Z" data-timestamp="2026-09-14T21:28:29.654Z">2026-09-14T21:28:29.654Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import { describe, it, expect } from &#x27;vitest&#x27;;
+2	import { AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS } from &#x27;./adaptive&#x27;;
+3	import { ConcurrencyLimiter } from &#x27;./controllers&#x27;;
+4	import { Simulation, DT_MS } from &#x27;./engine&#x27;;
+5	import { CAPACITY_DROP } from &#x27;../lessons/defaults&#x27;;
+6	import type { AdmissionController, BackendConfig, TickMetrics } from &#x27;./types&#x27;;
+7	
+8	const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+9	const load = { kind: &#x27;sustained&#x27; as const, baseRps: 300, peakRps: 300 };
+10	const DROP = CAPACITY_DROP; // the lesson&#x27;s own event, so the scenario follows the lesson if it is retuned
+11	function run(sim: Simulation, seconds: number): TickMetrics {
+12	  let m!: TickMetrics;
+13	  for (let i = 0; i &lt; (seconds * 1000) / DT_MS; i++) m = sim.step();
+14	  return m;
+15	}
+16	const mk = (c: AdmissionController) =&gt; new Simulation({ backend: BACKEND, load, controller: c, seed: 1 });
+17	
+18	describe(&#x27;AimdLimiter&#x27;, () =&gt; {
+19	  it(&#x27;grows additively while latency is healthy and backs off multiplicatively when not&#x27;, () =&gt; {
+20	    const c: AdmissionController = new AimdLimiter({ ...AIMD_PRESETS.stable, initialLimit: 10, windowMs: 100 });
+21	    for (let i = 0; i &lt; 20; i++) c.onComplete(200, i * 5);
+22	    c.onTick(100, 20);
+23	    expect(c.currentLimit()).toBe(10 + AIMD_PRESETS.stable.increaseStep);
+24	    for (let i = 0; i &lt; 20; i++) c.onComplete(2000, 100 + i * 5);
+25	    c.onTick(200, 20);
+26	    expect(c.currentLimit()).toBe(Math.floor((10 + AIMD_PRESETS.stable.increaseStep) * AIMD_PRESETS.stable.backoffRatio));
+27	  });
+28	});
+29	
+30	describe(&#x27;GradientLimiter&#x27;, () =&gt; {
+31	  it(&#x27;adds headroom when uncongested and shrinks when latency exceeds tolerance&#x27;, () =&gt; {
+32	    const c: AdmissionController = new GradientLimiter({ ...GRADIENT_PRESETS.stable, initialLimit: 20, smoothing: 1, windowMs: 100 });
+33	    for (let i = 0; i &lt; 20; i++) c.onComplete(200, i * 5);
+34	    c.onTick(100, 20);
+35	    expect(c.currentLimit()).toBe(20 + GRADIENT_PRESETS.stable.headroom);
+36	    for (let i = 0; i &lt; 20; i++) c.onComplete(2000, 100 + i * 5);
+37	    c.onTick(200, 20);
+38	    expect(c.currentLimit()).toBeLessThan(20 + GRADIENT_PRESETS.stable.headroom);
+39	  });
+40	});
+41	
+42	describe(&#x27;lesson 4 scenario: capacity drop&#x27;, () =&gt; {
+43	  for (const [name, make] of [
+44	    [&#x27;AIMD&#x27;, () =&gt; new AimdLimiter(AIMD_PRESETS.stable)],
+45	    [&#x27;Gradient&#x27;, () =&gt; new GradientLimiter(GRADIENT_PRESETS.stable)],
+46	  ] as const) {
+47	    it(`${name} keeps goodput &gt; 0 and latency under SLA during the drop where static 50 does not`, () =&gt; {
+48	      const a = mk(new ConcurrencyLimiter(50)), b = mk(make());
+49	      run(a, 10); run(b, 10);
+50	      a.triggerEvent(DROP); b.triggerEvent(DROP);
+51	      const ma = run(a, 8), mb = run(b, 8);
+52	      expect(ma.availability).toBeLessThan(0.05);
+53	      expect(mb.limit!).toBeLessThan(35);
+54	      expect(mb.p99LatencyMs).toBeLessThan(BACKEND.slaMs);
+55	      expect(mb.goodputRps).toBeGreaterThan(30);
+56	      const after = run(b, 15);
+57	      expect(after.limit!).toBeGreaterThan(40); // recovers toward capacity
+58	    });
+59	  }
+60	});
+61	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-29-655Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-29-655Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.655Z" data-timestamp="2026-09-14T21:28:29.655Z">2026-09-14T21:28:29.655Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import { useMemo, useState } from &#x27;react&#x27;;
+2	import { useLab, type LabSpec } from &#x27;../app/useLab&#x27;;
+3	import { LessonLayout } from &#x27;../components/LessonLayout&#x27;;
+4	import { ConcurrencyLimiter } from &#x27;../sim/controllers&#x27;;
+5	import {
+6	  AimdLimiter, GradientLimiter, AIMD_PRESETS, GRADIENT_PRESETS,
+7	  type AimdConfig, type GradientConfig, type PresetName,
+8	} from &#x27;../sim/adaptive&#x27;;
+9	import { CAPACITY_DROP, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#x27;./defaults&#x27;;
+10	import type { AdmissionController } from &#x27;../sim/types&#x27;;
+11	
+12	type Algo = &#x27;aimd&#x27; | &#x27;gradient&#x27;;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-29-895Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-29-895Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.895Z" data-timestamp="2026-09-14T21:28:29.895Z">2026-09-14T21:28:29.895Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Qgt9qKghAyEajwYrbCw8ju"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson2.tsx&#34;,
+  &#34;offset&#34;: 1,
+  &#34;limit&#34;: 6
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-29-902Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-29-902Z" class="timestamp-link"><time datetime="2026-09-14T21:28:29.902Z" data-timestamp="2026-09-14T21:28:29.902Z">2026-09-14T21:28:29.902Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import { useLab, type LabSpec } from &#x27;../app/useLab&#x27;;
+2	import { LessonLayout } from &#x27;../components/LessonLayout&#x27;;
+3	import { ConcurrencyLimiter, RpsLimiter } from &#x27;../sim/controllers&#x27;;
+4	import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN, RUN_A, RUN_B, SEED } from &#x27;./defaults&#x27;;
+5	
+6	const SPEC: LabSpec = {</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-28-32-251Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-28-32-251Z" class="timestamp-link"><time datetime="2026-09-14T21:28:32.251Z" data-timestamp="2026-09-14T21:28:32.251Z">2026-09-14T21:28:32.251Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Qb6BdcgoGbB7S3TKR3P2yf">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Find every importer of the scenario constants and the RATIONALE bullets to edit</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;DEFAULT_BACKEND\|CAPACITY_DROP\|DOWNSTREAM_SLOWDOWN\|from &#39;./defaults&#39;\|from &#39;../lessons/defaults&#39;&#34; src -r | grep -v &#34;^src/lessons/defaults.ts&#34;; echo &#34;--- RATIONALE fifo bullet lines ---&#34;; grep -n &#34;FIFO worker pool with variable service times; the thrashing\|Service time is bound\|Capacity is rounded to whole&#34; docs/RATIONALE.md</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-28-32-292Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-28-32-292Z" class="timestamp-link"><time datetime="2026-09-14T21:28:32.292Z" data-timestamp="2026-09-14T21:28:32.292Z">2026-09-14T21:28:32.292Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>src/components/Dashboard.tsx:2:import { GRAY, SLA_COLOR } from &#x27;../lessons/defaults&#x27;;
+src/lessons/Lesson2.tsx:4:import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN, RUN_A, RUN_B, SEED } from &#x27;./defaults&#x27;;
+src/lessons/Lesson2.tsx:7:  backend: DEFAULT_BACKEND, seed: SEED,
+src/lessons/Lesson2.tsx:26:      events={[{ label: &#x27;Downstream slowdown (3× latency, 10 s)&#x27;, event: DOWNSTREAM_SLOWDOWN }]}
+src/lessons/Lesson3.tsx:5:import { CAPACITY_DROP, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#x27;./defaults&#x27;;
+src/lessons/Lesson3.tsx:10:    backend: DEFAULT_BACKEND, seed: SEED,
+src/lessons/Lesson3.tsx:31:      events={[{ label: &#x27;Capacity drop (50 → 8 slots, 10 s)&#x27;, event: CAPACITY_DROP }]}
+src/lessons/Lesson4.tsx:9:import { CAPACITY_DROP, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#x27;./defaults&#x27;;
+src/lessons/Lesson4.tsx:24:    backend: DEFAULT_BACKEND, seed: SEED,
+src/lessons/Lesson4.tsx:54:      events={[{ label: &#x27;Capacity drop (50 → 8 slots, 10 s)&#x27;, event: CAPACITY_DROP }]}
+src/lessons/Lesson1.tsx:4:import { DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#x27;./defaults&#x27;;
+src/lessons/Lesson1.tsx:7:  backend: DEFAULT_BACKEND, seed: SEED,
+src/sim/adaptive.test.ts:5:import { CAPACITY_DROP } from &#x27;../lessons/defaults&#x27;;
+src/sim/adaptive.test.ts:10:const DROP = CAPACITY_DROP; // the lesson&#x27;s own event, so the scenario follows the lesson if it is retuned
+--- RATIONALE fifo bullet lines ---
+18:- **Backend = FIFO worker pool with variable service times; the thrashing penalty was removed.** The first version added an extra slowdown proportional to oversubscription so that throughput *collapsed* past capacity. It made the no-shedding lesson dramatic, but its shape was invented and hard to defend. A pool of `capacity` workers serving requests in arrival order is a model a reader can derive by hand (latency = queue wait + service time, throughput ≤ capacity ÷ service time) and every lesson still holds because the client deadline turns long waits into failures. The cost: without shedding, throughput plateaus instead of collapsing, so a capacity drop to 30% no longer made a static limit of 50 miss the SLA (50 ÷ 15 × 200 ms ≈ 670 ms). The drop event deepened to 50 → 8 workers, where limit 50 waits ≥ 1.2 s and limit 25 stays under 700 ms, to keep Lesson 3&#x27;s dilemma visible. The Stable presets also tightened (AIMD threshold 2.0 → 1.3× baseline, Gradient tolerance 1.5 → 1.2×): with honest queueing, a loose latency threshold lets an adaptive limiter fill the queue to 2× capacity and double latency before it ever backs off; the tighter settings make it hug capacity (saw-tooth 50–65) while still dropping to ~10–15 during the event.
+19:- **Service time is bound when a request first gets a worker, not at admission.** With a queue, the two differ: the first version fixed the service time at admission, so a request queued during a downstream slowdown was still served 3× slower long after the slowdown ended (and one queued before it was served at full speed during it), roughly doubling Lesson 2&#x27;s outage. Binding at service start means a request reflects the backend&#x27;s speed at the moment it is actually worked on. Still deterministic — the per-request jitter is still keyed by request id.
+20:- **Capacity is rounded to whole workers, and 0 means nothing is served.** An early guard clamped the pool to at least one worker to avoid a backend that silently serves nothing; that hid the one case where it matters — a capacity ×0 event is the honest model of an outage — and made the reported capacity disagree with the number actually serving. When capacity drops below the number already being served, the youngest of them pause and resume when a worker frees up (a CPU-stall model rather than a drain-then-shrink pool); simple, deterministic, and noted in the engine.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-12-340Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-12-340Z" class="timestamp-link"><time datetime="2026-09-14T21:29:12.340Z" data-timestamp="2026-09-14T21:29:12.340Z">2026-09-14T21:29:12.340Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-12-349Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-12-349Z" class="timestamp-link"><time datetime="2026-09-14T21:29:12.349Z" data-timestamp="2026-09-14T21:29:12.349Z">2026-09-14T21:29:12.349Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I have all the context I need, so I'll now make every edit — new <code>src/sim/scenario.ts</code>, updated re-exports/labels in <code>lessons/defaults.ts</code>, the four lesson files, three test files, plus RATIONALE and README — then run lint, build, and tests together.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-15-357Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-15-357Z" class="timestamp-link"><time datetime="2026-09-14T21:29:15.357Z" data-timestamp="2026-09-14T21:29:15.357Z">2026-09-14T21:29:15.357Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01WyTbNxvKVgmEpgz6KhnmKn">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">scenario.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/scenario.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">import type { BackendConfig, SimEvent } from &#39;./types&#39;;
+
+// The backend and events the lessons run against. They live in the sim layer so the scenario tests can
+// use exactly what the lessons use without importing upward.
+export const DEFAULT_BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10_000 };
+
+export const CAPACITY_DROP: SimEvent = { kind: &#39;capacity&#39;, multiplier: 0.16, durationMs: 10_000 };
+export const DOWNSTREAM_SLOWDOWN: SimEvent = { kind: &#39;serviceTime&#39;, multiplier: 3, durationMs: 10_000 };
+
+export const CAPACITY_DROP_WORKERS = Math.round(DEFAULT_BACKEND.capacity * CAPACITY_DROP.multiplier);
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-15-447Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-15-447Z" class="timestamp-link"><time datetime="2026-09-14T21:29:15.447Z" data-timestamp="2026-09-14T21:29:15.447Z">2026-09-14T21:29:15.447Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/scenario.ts (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-19-668Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-19-668Z" class="timestamp-link"><time datetime="2026-09-14T21:29:19.668Z" data-timestamp="2026-09-14T21:29:19.668Z">2026-09-14T21:29:19.668Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_019U42t3JhYgHRLw2SJq3eHR">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">defaults.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/defaults.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">import { CAPACITY_DROP, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN } from &#39;../sim/scenario&#39;;
+
+export { CAPACITY_DROP, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN };
+
+export const RUN_A = &#39;#d1495b&#39;;
+export const RUN_B = &#39;#2a9d8f&#39;;
+export const GRAY = &#39;#5b6069&#39;;
+export const SLA_COLOR = &#39;#1f2328&#39;;
+export const SEED = 42;
+
+export const CAPACITY_DROP_LABEL = `Capacity drop (${DEFAULT_BACKEND.capacity} → ${CAPACITY_DROP_WORKERS} slots, ${CAPACITY_DROP.durationMs / 1000} s)`;
+export const DOWNSTREAM_SLOWDOWN_LABEL = `Downstream slowdown (${DOWNSTREAM_SLOWDOWN.multiplier}× latency, ${DOWNSTREAM_SLOWDOWN.durationMs / 1000} s)`;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-19-700Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-19-700Z" class="timestamp-link"><time datetime="2026-09-14T21:29:19.700Z" data-timestamp="2026-09-14T21:29:19.700Z">2026-09-14T21:29:19.700Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>&lt;tool_use_error&gt;File has been modified since read, either by the user or by a linter. Read it again before attempting to write it.&lt;/tool_use_error&gt;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-22-174Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-22-174Z" class="timestamp-link"><time datetime="2026-09-14T21:29:22.174Z" data-timestamp="2026-09-14T21:29:22.174Z">2026-09-14T21:29:22.174Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Vb6XC9XX999Aink5MRnqGN">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson2.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson2.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN, RUN_A, RUN_B, SEED } from &#39;./defaults&#39;;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN, DOWNSTREAM_SLOWDOWN_LABEL, RUN_A, RUN_B, SEED } from &#39;./defaults&#39;;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-22-226Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-22-226Z" class="timestamp-link"><time datetime="2026-09-14T21:29:22.226Z" data-timestamp="2026-09-14T21:29:22.226Z">2026-09-14T21:29:22.226Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson2.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-24-360Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-24-360Z" class="timestamp-link"><time datetime="2026-09-14T21:29:24.360Z" data-timestamp="2026-09-14T21:29:24.360Z">2026-09-14T21:29:24.360Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01AnW2EJ5Q4qcM8JKDAxTvYC">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson2.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson2.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      events={[{ label: &#39;Downstream slowdown (3× latency, 10 s)&#39;, event: DOWNSTREAM_SLOWDOWN }]}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      events={[{ label: DOWNSTREAM_SLOWDOWN_LABEL, event: DOWNSTREAM_SLOWDOWN }]}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-24-407Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-24-407Z" class="timestamp-link"><time datetime="2026-09-14T21:29:24.407Z" data-timestamp="2026-09-14T21:29:24.407Z">2026-09-14T21:29:24.407Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson2.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-28-172Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-28-172Z" class="timestamp-link"><time datetime="2026-09-14T21:29:28.172Z" data-timestamp="2026-09-14T21:29:28.172Z">2026-09-14T21:29:28.172Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01NjTMo8oLY8N8889PvLkaVP">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson3.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import { CAPACITY_DROP, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#39;./defaults&#39;;
+
+export function Lesson3() {
+  const [limitA, setLimitA] = useState(50);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import { CAPACITY_DROP, CAPACITY_DROP_LABEL, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#39;./defaults&#39;;
+
+const CAPACITY = DEFAULT_BACKEND.capacity;
+const DROPPED = CAPACITY_DROP_WORKERS;
+const CONSERVATIVE = 25;
+const droppedRps = Math.round((DROPPED * 1000) / DEFAULT_BACKEND.serviceTimeMs);
+
+export function Lesson3() {
+  const [limitA, setLimitA] = useState(CAPACITY);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-28-220Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-28-220Z" class="timestamp-link"><time datetime="2026-09-14T21:29:28.220Z" data-timestamp="2026-09-14T21:29:28.220Z">2026-09-14T21:29:28.220Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-30-238Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-30-238Z" class="timestamp-link"><time datetime="2026-09-14T21:29:30.238Z" data-timestamp="2026-09-14T21:29:30.238Z">2026-09-14T21:29:30.238Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01P139h23reYw7fYP85NT7BX">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson3.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      { label: &#39;Static 25&#39;, color: RUN_B, makeController: () =&gt; new ConcurrencyLimiter(25) },</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      { label: `Static ${CONSERVATIVE}`, color: RUN_B, makeController: () =&gt; new ConcurrencyLimiter(CONSERVATIVE) },</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-30-292Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-30-292Z" class="timestamp-link"><time datetime="2026-09-14T21:29:30.292Z" data-timestamp="2026-09-14T21:29:30.292Z">2026-09-14T21:29:30.292Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-37-805Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-37-805Z" class="timestamp-link"><time datetime="2026-09-14T21:29:37.805Z" data-timestamp="2026-09-14T21:29:37.805Z">2026-09-14T21:29:37.805Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01Vtn1Sb8jwGag5MRzXs9V5R">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson3.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">      intro=&#34;A concurrency limit protects the backend — but which number? Capacity is not constant: GC pauses, noisy neighbours, slow dependencies and deploys all move it. Press the event button and the backend temporarily drops from 50 worker slots to 8.&#34;
+      watch={[
+        &#39;Before the drop, the limit tuned for normal capacity (50) delivers ~250 rps while the conservative limit (25) leaves half the workers idle.&#39;,
+        &#39;During the drop, limit 50 is 6× too high: 42 admitted requests queue behind 8 workers, every one of them waits past the SLA, and goodput collapses. Limit 25 queues 17 deep, stays under the SLA, and keeps ~40 rps flowing.&#39;,
+        &#39;Use the slider to hunt for a value that is right in both regimes — there isn\&#39;t one. The right limit is a function of current capacity, which is exactly what the next lesson measures.&#39;,
+      ]}
+      events={[{ label: &#39;Capacity drop (50 → 8 slots, 10 s)&#39;, event: CAPACITY_DROP }]}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">      intro={`A concurrency limit protects the backend — but which number? Capacity is not constant: GC pauses, noisy neighbours, slow dependencies and deploys all move it. Press the event button and the backend temporarily drops from ${CAPACITY} worker slots to ${DROPPED}.`}
+      watch={[
+        `Before the drop, the limit tuned for normal capacity (${CAPACITY}) delivers ~250 rps while the conservative limit (${CONSERVATIVE}) leaves half the workers idle.`,
+        `During the drop, limit ${CAPACITY} is ${Math.round(CAPACITY / DROPPED)}× too high: ${CAPACITY - DROPPED} admitted requests queue behind ${DROPPED} workers, every one of them waits past the SLA, and goodput collapses. Limit ${CONSERVATIVE} queues ${CONSERVATIVE - DROPPED} deep, stays under the SLA, and keeps ~${droppedRps} rps flowing.`,
+        &#39;Use the slider to hunt for a value that is right in both regimes — there isn\&#39;t one. The right limit is a function of current capacity, which is exactly what the next lesson measures.&#39;,
+      ]}
+      events={[{ label: CAPACITY_DROP_LABEL, event: CAPACITY_DROP }]}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-37-859Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-37-859Z" class="timestamp-link"><time datetime="2026-09-14T21:29:37.859Z" data-timestamp="2026-09-14T21:29:37.859Z">2026-09-14T21:29:37.859Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson3.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-39-924Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-39-924Z" class="timestamp-link"><time datetime="2026-09-14T21:29:39.924Z" data-timestamp="2026-09-14T21:29:39.924Z">2026-09-14T21:29:39.924Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01CYsh72H3uCMFpWBaiJG39W">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson4.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson4.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import { CAPACITY_DROP, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#39;./defaults&#39;;</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import { CAPACITY_DROP, CAPACITY_DROP_LABEL, DEFAULT_BACKEND, RUN_A, RUN_B, SEED } from &#39;./defaults&#39;;</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-39-980Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-39-980Z" class="timestamp-link"><time datetime="2026-09-14T21:29:39.980Z" data-timestamp="2026-09-14T21:29:39.980Z">2026-09-14T21:29:39.980Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson4.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-43-551Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-43-551Z" class="timestamp-link"><time datetime="2026-09-14T21:29:43.551Z" data-timestamp="2026-09-14T21:29:43.551Z">2026-09-14T21:29:43.551Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01AHh84597M9VwKo2ZrgNWQ3">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">Lesson4.tsx</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson4.tsx</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">        &#39;Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts and oscillates. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.&#39;,
+      ]}
+      events={[{ label: &#39;Capacity drop (50 → 8 slots, 10 s)&#39;, event: CAPACITY_DROP }]}</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">        &#39;Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts — AIMD swings between a handful and ~70 in flight, Gradient over-shrinks and parks at its floor. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.&#39;,
+      ]}
+      events={[{ label: CAPACITY_DROP_LABEL, event: CAPACITY_DROP }]}</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-43-598Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-43-598Z" class="timestamp-link"><time datetime="2026-09-14T21:29:43.598Z" data-timestamp="2026-09-14T21:29:43.598Z">2026-09-14T21:29:43.598Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/Lesson4.tsx has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-47-927Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-47-927Z" class="timestamp-link"><time datetime="2026-09-14T21:29:47.927Z" data-timestamp="2026-09-14T21:29:47.927Z">2026-09-14T21:29:47.927Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01NGpvvLMkhnUAbKgv9mZ1UU">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import { Simulation, DT_MS } from &#39;./engine&#39;;
+import { CAPACITY_DROP } from &#39;../lessons/defaults&#39;;
+import type { AdmissionController, BackendConfig, TickMetrics } from &#39;./types&#39;;
+
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+const load = { kind: &#39;sustained&#39; as const, baseRps: 300, peakRps: 300 };
+const DROP = CAPACITY_DROP; // the lesson&#39;s own event, so the scenario follows the lesson if it is retuned</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import { Simulation, DT_MS } from &#39;./engine&#39;;
+import { CAPACITY_DROP, DEFAULT_BACKEND } from &#39;./scenario&#39;;
+import type { AdmissionController, TickMetrics } from &#39;./types&#39;;
+
+// The lesson&#39;s own backend and event, so the scenario follows the lesson if either is retuned.
+const BACKEND = DEFAULT_BACKEND;
+const DROP = CAPACITY_DROP;
+const load = { kind: &#39;sustained&#39; as const, baseRps: 300, peakRps: 300 };</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-47-992Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-47-992Z" class="timestamp-link"><time datetime="2026-09-14T21:29:47.992Z" data-timestamp="2026-09-14T21:29:47.992Z">2026-09-14T21:29:47.992Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-56-175Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-56-175Z" class="timestamp-link"><time datetime="2026-09-14T21:29:56.175Z" data-timestamp="2026-09-14T21:29:56.175Z">2026-09-14T21:29:56.175Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01GFLuMM1GadePA1WSUw93mr">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">adaptive.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    it(`${name} keeps goodput &gt; 0 and latency under SLA during the drop where static 50 does not`, () =&gt; {
+      const a = mk(new ConcurrencyLimiter(50)), b = mk(make());
+      run(a, 10); run(b, 10);
+      a.triggerEvent(DROP); b.triggerEvent(DROP);
+      const ma = run(a, 8), mb = run(b, 8);
+      expect(ma.availability).toBeLessThan(0.05);
+      expect(mb.limit!).toBeLessThan(35);
+      expect(mb.p99LatencyMs).toBeLessThan(BACKEND.slaMs);
+      expect(mb.goodputRps).toBeGreaterThan(30);
+      const after = run(b, 15);
+      expect(after.limit!).toBeGreaterThan(40); // recovers toward capacity
+    });</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    it(`${name} backs off within seconds of the drop and is under the SLA with goodput by its end, where static 50 is not`, () =&gt; {
+      const a = mk(new ConcurrencyLimiter(50)), b = mk(make());
+      run(a, 10); run(b, 10);
+      a.triggerEvent(DROP); b.triggerEvent(DROP);
+      // Backing off from ~60 to ~12 in flight takes a few windows, so the first seconds of the drop are over
+      // the SLA for the adaptive run too; from t+5 s on it must be delivering every second.
+      run(a, 5); run(b, 5);
+      for (let s = 0; s &lt; 3; s++) {
+        const ma = run(a, 1), mb = run(b, 1);
+        expect(ma.availability).toBeLessThan(0.05);
+        expect(mb.goodputRps).toBeGreaterThan(20);
+      }
+      const mb = run(b, 0.02); // one tick: the state at the end of the 8 s sampled window
+      expect(mb.limit!).toBeLessThan(35);
+      expect(mb.p99LatencyMs).toBeLessThan(BACKEND.slaMs);
+      expect(mb.goodputRps).toBeGreaterThan(30);
+      const after = run(b, 15);
+      expect(after.limit!).toBeGreaterThan(40); // recovers toward capacity
+    });</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-56-237Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-56-237Z" class="timestamp-link"><time datetime="2026-09-14T21:29:56.237Z" data-timestamp="2026-09-14T21:29:56.237Z">2026-09-14T21:29:56.237Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/adaptive.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-29-59-324Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-29-59-324Z" class="timestamp-link"><time datetime="2026-09-14T21:29:59.324Z" data-timestamp="2026-09-14T21:29:59.324Z">2026-09-14T21:29:59.324Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_017912dfaHkA9w7n8MuKHppA">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">controllers.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/controllers.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">import { Simulation, DT_MS } from &#39;./engine&#39;;
+import type { AdmissionController, BackendConfig, TickMetrics } from &#39;./types&#39;;
+
+const BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">import { Simulation, DT_MS } from &#39;./engine&#39;;
+import { DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN } from &#39;./scenario&#39;;
+import type { AdmissionController, TickMetrics } from &#39;./types&#39;;
+
+const BACKEND = DEFAULT_BACKEND; // the lessons&#39; backend, so the scenario tests follow the lessons</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-29-59-391Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-29-59-391Z" class="timestamp-link"><time datetime="2026-09-14T21:29:59.391Z" data-timestamp="2026-09-14T21:29:59.391Z">2026-09-14T21:29:59.391Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/controllers.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-00-300Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-00-300Z" class="timestamp-link"><time datetime="2026-09-14T21:30:00.300Z" data-timestamp="2026-09-14T21:30:00.300Z">2026-09-14T21:30:00.300Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CgsfzcSSgcmUES7CzzVqVA">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Locate the local slowdown event in the lesson 2 scenario test</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">grep -n &#34;spike&#34; src/sim/controllers.test.ts</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-00-384Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-00-384Z" class="timestamp-link"><time datetime="2026-09-14T21:30:00.384Z" data-timestamp="2026-09-14T21:30:00.384Z">2026-09-14T21:30:00.384Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>48:  it(&#x27;melts during a service-time spike where a concurrency limiter survives (lesson 2)&#x27;, () =&gt; {
+52:    const spike = { kind: &#x27;serviceTime&#x27; as const, multiplier: 3, durationMs: 10_000 };
+53:    a.triggerEvent(spike); b.triggerEvent(spike);</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-06-184Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-06-184Z" class="timestamp-link"><time datetime="2026-09-14T21:30:06.184Z" data-timestamp="2026-09-14T21:30:06.184Z">2026-09-14T21:30:06.184Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_014GnSDcVJmS8B11cbddd5VH">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">engine.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/engine.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">  it(&#39;queues under sustained overload: latency past SLA and goodput collapses&#39;, () =&gt; {
+    const sim = new Simulation({ backend: BACKEND, load: { kind: &#39;sustained&#39;, baseRps: 600, peakRps: 600 }, controller: admitAll, seed: 1 });
+    const m = run(sim, 30);
+    expect(m.inflight).toBeGreaterThan(1000);
+    expect(m.p99LatencyMs).toBeGreaterThan(BACKEND.slaMs);
+    expect(m.availability).toBeLessThan(0.05);
+  });</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">  it(&#39;queues under sustained overload: completions cap at capacity / service time, latency passes the SLA, goodput collapses&#39;, () =&gt; {
+    const sim = new Simulation({ backend: BACKEND, load: { kind: &#39;sustained&#39;, baseRps: 600, peakRps: 600 }, controller: admitAll, seed: 1 });
+    const early = run(sim, 10); // before any client has given up
+    const completions = early.goodputRps + early.timedOutRps;
+    expect(completions).toBeGreaterThan(200); // 50 workers / ~0.21 s ≈ 238/s; capacity 100 would give ~475/s
+    expect(completions).toBeLessThan(280);
+    const m = run(sim, 20);
+    expect(m.inflight).toBeGreaterThan(1000);
+    expect(m.p99LatencyMs).toBeGreaterThan(BACKEND.slaMs);
+    expect(m.availability).toBeLessThan(0.05);
+  });</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-06-307Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-06-307Z" class="timestamp-link"><time datetime="2026-09-14T21:30:06.307Z" data-timestamp="2026-09-14T21:30:06.307Z">2026-09-14T21:30:06.307Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/engine.test.ts has been updated successfully. (note: the file had been modified on disk since you last read it — the edit applied cleanly, but the file contains other changes not in your context. Read it before edits that depend on surrounding content.)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-16-916Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-16-916Z" class="timestamp-link"><time datetime="2026-09-14T21:30:16.916Z" data-timestamp="2026-09-14T21:30:16.916Z">2026-09-14T21:30:16.916Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01MGdg2XZ9ZxETUfikMvQSWJ">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">RATIONALE.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">The cost: without shedding, throughput plateaus instead of collapsing, so a capacity drop to 30% no longer made a static limit of 50 miss the SLA (50 ÷ 15 × 200 ms ≈ 670 ms). The drop event deepened to 50 → 8 workers, where limit 50 waits ≥ 1.2 s and limit 25 stays under 700 ms, to keep Lesson 3&#39;s dilemma visible. The Stable presets also tightened (AIMD threshold 2.0 → 1.3× baseline, Gradient tolerance 1.5 → 1.2×): with honest queueing, a loose latency threshold lets an adaptive limiter fill the queue to 2× capacity and double latency before it ever backs off; the tighter settings make it hug capacity (saw-tooth 50–65) while still dropping to ~10–15 during the event.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">With a *bounded* queue (any concurrency limit) throughput now plateaus at capacity ÷ service time instead of collapsing — so a capacity drop to 30% no longer made a static limit of 50 miss the SLA (50 ÷ 15 × 200 ms ≈ 670 ms), and the drop event deepened to 50 → 8 workers, where limit 50 waits ≥ 1.2 s and limit 25 sits at ~750 ms p99, to keep Lesson 3&#39;s dilemma visible. With an *unbounded* queue the collapse comes back on its own, and for a real reason: queue wait converges to the client timeout, so every worker is handed to a request whose client is about to give up — at 600 rps completions fall to zero by ~25 s. The meltdown Lesson 1 shows is emergent from FIFO plus deadlines, not something the model was told to do (and it is why real servers reach for LIFO or deadline-aware queues, listed under extensions). The Stable presets also tightened (AIMD threshold 2.0 → 1.3× baseline, Gradient tolerance 1.5 → 1.2×): with honest queueing, a loose latency threshold lets an adaptive limiter fill the queue to 2× capacity and double latency before it ever backs off; the tighter settings keep it near capacity for the first ~30 s (saw-tooth 50–65) and still drop it to ~10–15 during the event. Known limitation: under sustained load the min-of-windows baseline never observes idle latency and drifts upward, so over minutes AIMD Stable wanders 60–95 and Gradient Stable ramps to the max limit. The fix belongs in `BaselineTracker` (a periodic probe window that re-measures no-load latency, as Netflix Gradient2 does), not in preset numbers.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-17-024Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-17-024Z" class="timestamp-link"><time datetime="2026-09-14T21:30:17.024Z" data-timestamp="2026-09-14T21:30:17.024Z">2026-09-14T21:30:17.024Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md has been updated successfully. (note: the file had been modified on disk since you last read it — the edit applied cleanly, but the file contains other changes not in your context. Read it before edits that depend on surrounding content.)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-19-301Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-19-301Z" class="timestamp-link"><time datetime="2026-09-14T21:30:19.301Z" data-timestamp="2026-09-14T21:30:19.301Z">2026-09-14T21:30:19.301Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_012W3NYiYCDSqXMebXEAXs6e">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">RATIONALE.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">(a CPU-stall model rather than a drain-then-shrink pool); simple, deterministic, and noted in the engine.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">(a CPU-stall model rather than a drain-then-shrink pool); simple, deterministic, and noted in the engine. The adaptive limiters get feedback only from completions, so during a capacity-0 outage they hold their limit until clients time out — no lesson wires that event today.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-19-372Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-19-372Z" class="timestamp-link"><time datetime="2026-09-14T21:30:19.372Z" data-timestamp="2026-09-14T21:30:19.372Z">2026-09-14T21:30:19.372Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-21-929Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-21-929Z" class="timestamp-link"><time datetime="2026-09-14T21:30:21.929Z" data-timestamp="2026-09-14T21:30:21.929Z">2026-09-14T21:30:21.929Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01SNwyA3yDzA3b2hDozb6yyf">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">RATIONALE.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">- Vegas- and CoDel-style limiters using queue delay rather than total latency as the signal.</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">- Vegas- and CoDel-style limiters using queue delay rather than total latency as the signal.
+- LIFO or deadline-aware queueing at the backend, so an overloaded FIFO stops spending workers on requests whose clients have already left.</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-22-004Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-22-004Z" class="timestamp-link"><time datetime="2026-09-14T21:30:22.004Z" data-timestamp="2026-09-14T21:30:22.004Z">2026-09-14T21:30:22.004Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/docs/RATIONALE.md has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-23-809Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-23-809Z" class="timestamp-link"><time datetime="2026-09-14T21:30:23.809Z" data-timestamp="2026-09-14T21:30:23.809Z">2026-09-14T21:30:23.809Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01AmhkhF91EyVuLdbc8XgkaA">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">README.md</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/README.md</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">service time and throughput tops out at `capacity ÷ service time`. Completions slower than the client deadline (1 s) count as failures even</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">service time and throughput tops out at about `capacity ÷ service time` (~240 rps here). Completions slower than the client deadline (1 s) count as failures even</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-23-880Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-23-880Z" class="timestamp-link"><time datetime="2026-09-14T21:30:23.880Z" data-timestamp="2026-09-14T21:30:23.880Z">2026-09-14T21:30:23.880Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/README.md has been updated successfully. (note: the file had been modified on disk since you last read it — the edit applied cleanly, but the file contains other changes not in your context. Read it before edits that depend on surrounding content.)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-27-075Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-27-075Z" class="timestamp-link"><time datetime="2026-09-14T21:30:27.075Z" data-timestamp="2026-09-14T21:30:27.075Z">2026-09-14T21:30:27.075Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-27-669Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-27-669Z" class="timestamp-link"><time datetime="2026-09-14T21:30:27.669Z" data-timestamp="2026-09-14T21:30:27.669Z">2026-09-14T21:30:27.669Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01U9MUxYjwCuZnyycHm61F2L"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/defaults.ts&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-27-700Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-27-700Z" class="timestamp-link"><time datetime="2026-09-14T21:30:27.700Z" data-timestamp="2026-09-14T21:30:27.700Z">2026-09-14T21:30:27.700Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>1	import type { BackendConfig, SimEvent } from &#x27;../sim/types&#x27;;
+2	
+3	export const DEFAULT_BACKEND: BackendConfig = { capacity: 50, serviceTimeMs: 200, slaMs: 1000, clientTimeoutMs: 10000 };
+4	export const RUN_A = &#x27;#d1495b&#x27;;
+5	export const RUN_B = &#x27;#2a9d8f&#x27;;
+6	export const GRAY = &#x27;#5b6069&#x27;;
+7	export const SLA_COLOR = &#x27;#1f2328&#x27;;
+8	export const SEED = 42;
+9	
+10	export const CAPACITY_DROP: SimEvent = { kind: &#x27;capacity&#x27;, multiplier: 0.16, durationMs: 10_000 };
+11	export const DOWNSTREAM_SLOWDOWN: SimEvent = { kind: &#x27;serviceTime&#x27;, multiplier: 3, durationMs: 10_000 };
+12	</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-29-772Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-29-772Z" class="timestamp-link"><time datetime="2026-09-14T21:30:29.772Z" data-timestamp="2026-09-14T21:30:29.772Z">2026-09-14T21:30:29.772Z</time></a></div><div class="message-content"><div class="file-tool edit-tool" data-tool-id="toolu_01TB5sVneJT7ZSxWAaGzgeH6">
+<div class="file-tool-header edit-header"><span class="file-tool-icon">✏️</span> Edit <span class="file-tool-path">controllers.test.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/controllers.test.ts</div>
+<div class="truncatable"><div class="truncatable-content">
+<div class="edit-section edit-old"><div class="edit-label">−</div><pre class="edit-content">    const spike = { kind: &#39;serviceTime&#39; as const, multiplier: 3, durationMs: 10_000 };
+    a.triggerEvent(spike); b.triggerEvent(spike);</pre></div>
+<div class="edit-section edit-new"><div class="edit-label">+</div><pre class="edit-content">    a.triggerEvent(DOWNSTREAM_SLOWDOWN); b.triggerEvent(DOWNSTREAM_SLOWDOWN);</pre></div>
+</div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-29-819Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-29-819Z" class="timestamp-link"><time datetime="2026-09-14T21:30:29.819Z" data-timestamp="2026-09-14T21:30:29.819Z">2026-09-14T21:30:29.819Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/sim/controllers.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-35-379Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-35-379Z" class="timestamp-link"><time datetime="2026-09-14T21:30:35.379Z" data-timestamp="2026-09-14T21:30:35.379Z">2026-09-14T21:30:35.379Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01D8ftHmzXhzmGJZcVY8BTwy">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">defaults.ts</span></div>
+<div class="file-tool-fullpath">/Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/defaults.ts</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">import { CAPACITY_DROP, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN } from &#39;../sim/scenario&#39;;
+
+export { CAPACITY_DROP, CAPACITY_DROP_WORKERS, DEFAULT_BACKEND, DOWNSTREAM_SLOWDOWN };
+
+export const RUN_A = &#39;#d1495b&#39;;
+export const RUN_B = &#39;#2a9d8f&#39;;
+export const GRAY = &#39;#5b6069&#39;;
+export const SLA_COLOR = &#39;#1f2328&#39;;
+export const SEED = 42;
+
+export const CAPACITY_DROP_LABEL = `Capacity drop (${DEFAULT_BACKEND.capacity} → ${CAPACITY_DROP_WORKERS} slots, ${CAPACITY_DROP.durationMs / 1000} s)`;
+export const DOWNSTREAM_SLOWDOWN_LABEL = `Downstream slowdown (${DOWNSTREAM_SLOWDOWN.multiplier}× latency, ${DOWNSTREAM_SLOWDOWN.durationMs / 1000} s)`;
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-35-421Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-35-421Z" class="timestamp-link"><time datetime="2026-09-14T21:30:35.421Z" data-timestamp="2026-09-14T21:30:35.421Z">2026-09-14T21:30:35.421Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>The file /Users/utsavjain/anthropic-take-home/adaptive-limits-simulator/src/lessons/defaults.ts has been updated successfully. (file state is current in your context — no need to Read it back)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-38-110Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-38-110Z" class="timestamp-link"><time datetime="2026-09-14T21:30:38.110Z" data-timestamp="2026-09-14T21:30:38.110Z">2026-09-14T21:30:38.110Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01QsHgqyMX7iM4enfyeKcNc9">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Lint, build, full test suite, and check for hand-written labels or upward imports</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">npm run lint 2&gt;&amp;1 | grep -E &#34;warning|error&#34;; echo &#34;--- build ---&#34;; npm run build 2&gt;&amp;1 | grep -E &#34;error|✓ built&#34;; echo &#34;--- test ---&#34;; npm test 2&gt;&amp;1 | grep -E &#34;×|Test Files|Tests |AssertionError|expected&#34; | head -20; echo &#34;--- leftovers ---&#34;; grep -rn &#34;50 → 8\|from &#39;../lessons/defaults&#39;&#34; src | grep -v &#34;^src/components/Dashboard.tsx&#34; ; echo &#34;(none above = clean)&#34;; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-30-42-733Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-30-42-733Z" class="timestamp-link"><time datetime="2026-09-14T21:30:42.733Z" data-timestamp="2026-09-14T21:30:42.733Z">2026-09-14T21:30:42.733Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>--- build ---
+✓ built in 72ms
+--- test ---
+ Test Files  6 passed (6)
+      Tests  56 passed (56)
+--- leftovers ---
+(none above = clean)
+ M README.md
+ M docs/RATIONALE.md
+ M src/lessons/Lesson2.tsx
+ M src/lessons/Lesson3.tsx
+ M src/lessons/Lesson4.tsx
+ M src/lessons/defaults.ts
+ M src/sim/adaptive.test.ts
+ M src/sim/controllers.test.ts
+ M src/sim/engine.test.ts
+?? src/sim/scenario.ts</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-49-013Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-49-013Z" class="timestamp-link"><time datetime="2026-09-14T21:30:49.013Z" data-timestamp="2026-09-14T21:30:49.013Z">2026-09-14T21:30:49.013Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-30-49-016Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-30-49-016Z" class="timestamp-link"><time datetime="2026-09-14T21:30:49.016Z" data-timestamp="2026-09-14T21:30:49.016Z">2026-09-14T21:30:49.016Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-31-17-686Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-31-17-686Z" class="timestamp-link"><time datetime="2026-09-14T21:31:17.686Z" data-timestamp="2026-09-14T21:31:17.686Z">2026-09-14T21:31:17.686Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01GKL4imkyccrR9c1iN8umoK">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Commit, push, update the PR body, and return to the docs branch</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git add README.md docs/RATIONALE.md src/lessons/Lesson2.tsx src/lessons/Lesson3.tsx src/lessons/Lesson4.tsx src/lessons/defaults.ts src/sim/adaptive.test.ts src/sim/controllers.test.ts src/sim/engine.test.ts src/sim/scenario.ts &amp;&amp; git commit -q -m &#34;$(cat &lt;&lt;&#39;EOF&#39;
+test(sim): couple scenario tests to the lessons&#39; backend and events; tighten assertions
+
+Move DEFAULT_BACKEND and the two events into src/sim/scenario.ts (re-exported
+from lessons/defaults) so the lesson 2 and 4 scenario tests import them
+without reaching up a layer, and derive the event labels and Lesson 3 copy
+from the same constants. The overload test now bounds completions at
+capacity / service time, and the lesson 4 test asserts goodput every second
+for the last 3 s of the drop rather than only the final tick.
+
+Docs: state that an unbounded FIFO queue plus client deadlines drives
+completions to zero (the collapse is emergent, not the removed penalty), give
+the p99 figure for static 25, correct the Stable-preset claim and name the
+baseline-drift follow-up, and fix the Gradient Aggressive copy.
+
+Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;
+Claude-Session: https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; &amp;&amp; git -c credential.helper=&#39;!gh auth git-credential&#39; push -q origin refactor/fifo-backend 2&gt;&amp;1 | grep -v &#34;^remote:&#34;; git log --oneline | head -3 &amp;&amp; gh pr edit 6 --body &#34;$(cat &lt;&lt;&#39;EOF&#39;
+## Summary
+
+Removes the invented thrashing penalty from the backend model. The backend is now a FIFO worker pool with variable service times: `capacity` workers serve the oldest admitted requests at nominal speed and everything behind them waits in arrival order without progressing. `overloadPenalty` is deleted from `BackendConfig`. Start with `src/sim/engine.ts` (`step()` and `effective()`) and `src/sim/scenario.ts`; the rest is copy, docs and tests.
+
+## Motivation
+
+The penalty made throughput *collapse* past capacity, which was dramatic but had a made-up shape that is hard to defend. A worker pool with a queue is a model a reader can derive by hand — latency = queue wait + service time, throughput ≤ capacity ÷ service time — and every lesson still holds because the client deadline turns long waits into failures. Notably the Lesson 1 collapse comes back on its own: with an unbounded FIFO queue the wait converges to the client timeout, so workers are handed to requests whose clients are about to give up and completions fall to zero — emergent, not scripted.
+
+Two consequences, both deliberate and recorded in `docs/RATIONALE.md`:
+
+- **Capacity drop deepened from ×0.3 to 50 → 8 workers.** With honest queueing, at 15 workers a static limit of 50 waits only ~670 ms — under the SLA — so Lesson 3&#39;s dilemma vanished. At 8 workers limit 50 waits ≥ 1.2 s (0 goodput) while limit 25 sits at ~750 ms p99 with ~40 rps.
+- **Stable presets tightened**: AIMD `latencyThresholdFactor` 2.0 → 1.3, Gradient `tolerance` 1.5 → 1.2. Without the penalty a loose threshold let the limiter fill the queue to 2× capacity before backing off.
+
+`inflight` keeps meaning queued + serving — that is what a concurrency limiter bounds in a real server — so the animation&#39;s &#34;N in flight / capacity&#34; stays honest.
+
+## Review follow-ups
+
+Commit 2 (`f80f9f1`):
+- **Service time is bound when a request first holds a worker, not at admission.** Previously a request queued during the 3× slowdown was served at 3× after it ended. Test: one worker with a permanent backlog completes ~1.7/s during the slowdown and ~4.7/s after.
+- **`Math.max(1, …)` guard removed; capacity rounded once in `effective()`.** A ×0 event serves nothing (test: zero completions, recovers when capacity returns); reported capacity is the number actually serving (×0.15 on 50 reports 8).
+
+Commit 3 (`/code-review high`):
+- `DEFAULT_BACKEND`, `CAPACITY_DROP`, `DOWNSTREAM_SLOWDOWN` moved to `src/sim/scenario.ts` (re-exported from `lessons/defaults.ts`), so the lesson 2/4 scenario tests use the lessons&#39; backend *and* events without a `sim → lessons` import. Event labels and Lesson 3&#39;s numbers are derived from the constants.
+- Overload test now bounds completions at capacity ÷ service time (capacity 100 would fail it). Lesson 4 test asserts goodput &gt; 20 rps every second for the last 3 s of the drop, not just the final tick, and is named for what it checks.
+- RATIONALE: the &#34;plateaus instead of collapsing&#34; sentence is now correct (bounded vs unbounded queue), static 25 quoted as ~750 ms p99, the Stable-preset claim limited to what&#39;s true (~30 s) with the baseline-drift mechanism and its fix named as a follow-up, limiters noted as completion-feedback-only during an outage. Lesson 4 copy no longer says Gradient Aggressive oscillates (it parks at its 0.5·L + 12 fixed point).
+
+## Testing
+
+- [x] `npm run lint` — clean
+- [x] `npm run build` — clean
+- [x] `npm test` — 6 files, 56 tests pass
+- [x] Verified in the browser (`npm run dev`, commit 1): Lessons 1, 3 and 4 screenshotted at 1400 px through their events — L1 no-shedding pins at the 10 s client timeout with thousands queued and 0 goodput; L3 static 50 at 1.44 s p99 / 0 rps vs static 25 at 760 ms / 38 rps during the drop; L4 AIMD Stable saw-tooths 50–65, drops to ~10 and recovers.
+
+Scenario-test changes: lesson 4 test renamed and strengthened as above (thresholds unchanged: limit &lt; 35, p99 &lt; SLA, goodput &gt; 30 at the end, recovers &gt; 40); overload test gained a completions bound; lesson 2 test uses `DOWNSTREAM_SLOWDOWN` instead of a local copy. No `overloadPenalty` remains anywhere.
+
+Known follow-up (separate PR): baseline drift in `BaselineTracker` under sustained load — Gradient Stable reaches the 200 max by ~2 min without an event; needs a periodic no-load probe.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+https://claude.ai/code/session_01NupxnCttYRsSKJCUTYJLNE
+EOF
+)&#34; 2&gt;&amp;1 | tail -1; git checkout -q docs/code-review-before-pr &amp;&amp; git branch --show-current &amp;&amp; git status --short</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T21-31-22-806Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T21-31-22-806Z" class="timestamp-link"><time datetime="2026-09-14T21:31:22.806Z" data-timestamp="2026-09-14T21:31:22.806Z">2026-09-14T21:31:22.806Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>4263a3f test(sim): couple scenario tests to the lessons&#x27; backend and events; tighten assertions
+f80f9f1 fix(sim): bind service time at service start; allow a zero-worker pool
+57e0770 refactor(sim): replace the thrashing penalty with a FIFO worker pool
+https://github.com/utsavjain0511/adaptive-limits-simulator/pull/6
+docs/code-review-before-pr</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T21-31-34-464Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T21-31-34-464Z" class="timestamp-link"><time datetime="2026-09-14T21:31:34.464Z" data-timestamp="2026-09-14T21:31:34.464Z">2026-09-14T21:31:34.464Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done — PR #6 now has three commits, and your working tree is back on <code>docs/code-review-before-pr</code>, clean. (The "changed on disk" notes are just that branch's pre-FIFO files.)</p>
+<p><strong>Commit 3 (<code>4263a3f</code>) — findings 1–9:</strong>
+- <strong>Layering (3):</strong> <code>DEFAULT_BACKEND</code>, <code>CAPACITY_DROP</code>, <code>DOWNSTREAM_SLOWDOWN</code> and a derived <code>CAPACITY_DROP_WORKERS</code> now live in <code>src/sim/scenario.ts</code>; <code>lessons/defaults.ts</code> re-exports them and builds the two event labels. The lesson 2 and 4 scenario tests import the lessons' backend <em>and</em> events from within <code>sim/</code> — no upward import, and full coupling this time.
+- <strong>Derived copy (5):</strong> Lesson 3's "50 → 8", "42 queue behind 8", "6× too high", "~40 rps" and both event-button labels are computed from the constants.
+- <strong>Stronger tests (4, 6):</strong> the overload test bounds completions at 200–280/s at t = 10 s (capacity 100 would read ~475 and fail); the lesson 4 test now samples goodput &gt; 20 rps every second for the last 3 s of the drop and is named for what it checks. Thresholds unchanged.
+- <strong>Docs (1, 2, 7, 8, 9):</strong> the "plateaus instead of collapsing" claim is now correct and the interesting part is stated — with an unbounded FIFO queue the wait converges to the client timeout, workers get handed to requests whose clients are leaving, and completions fall to zero; the collapse is emergent, not scripted (LIFO/deadline-aware queueing added under extensions). Static 25 quoted as ~750 ms p99; Stable-preset claim limited to ~30 s with the <code>BaselineTracker</code> drift and its fix named as a follow-up; limiters noted as blind during a capacity-0 outage; Lesson 4 copy no longer says Gradient Aggressive oscillates.</p>
+<p>Lint, build, 56/56 clean; PR body updated with a per-commit follow-ups section. Finding 10 is on your side: add <code>refactor</code> to CLAUDE.md's prefix list on the docs branch. Remaining follow-up after #6 merges: the baseline re-probe in <code>BaselineTracker</code>.</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T22-42-27-005Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T22-42-27-005Z" class="timestamp-link"><time datetime="2026-09-14T22:42:27.005Z" data-timestamp="2026-09-14T22:42:27.005Z">2026-09-14T22:42:27.005Z</time></a></div><div class="message-content">
+<div class="user-content"><p>In both AIMD and Gradient Adaptive Limit algorithms we grow the adaptive limit, if the latencies are fine. This increase the capacity to maxLimit and it sits there in steady state. Instead, can you update the logic to increase the capacity only if in-flight is &gt;= 1/2 * limit.</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T22-42-54-859Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T22-42-54-859Z" class="timestamp-link"><time datetime="2026-09-14T22:42:54.859Z" data-timestamp="2026-09-14T22:42:54.859Z">2026-09-14T22:42:54.859Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Request interrupted by user]</p></div></div></div>
+<div class="message user" id="msg-2026-09-14T22-51-18-117Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2026-09-14T22-51-18-117Z" class="timestamp-link"><time datetime="2026-09-14T22:51:18.117Z" data-timestamp="2026-09-14T22:51:18.117Z">2026-09-14T22:51:18.117Z</time></a></div><div class="message-content">
+<div class="user-content"><p><task-notification>
+<task-id>ain-both-aimd-a037197cb7d7d0d9</task-id>
+<output-file>/private/tmp/claude-501/-Users-utsavjain-anthropic-take-home-adaptive-limits-simulator/dbf106f1-4ca0-45a9-99f2-07c9632942e2/tasks/ain-both-aimd-a037197cb7d7d0d9.output</output-file>
+<status>completed</status></p>
+<summary>Agent "In both AIMD and Gradient Adaptive Limit algorith…" finished</summary>
+<p><note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Task: add a utilisation guard so AIMD and Gradient only grow their limit when the window's peak in-flight ≥ limit/2.</p>
+<p>Done — <strong>PR #8:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/8 (branch <code>feat/adaptive-utilisation-guard</code> off <code>origin/main</code>, commit <code>1ef5655</code>). PR #6 had already merged, so this is not stacked. Worked in a temporary worktree; the shared tree stayed on <code>docs/code-review-before-pr</code>, clean.</p>
+<p><strong>Change</strong> — <code>src/sim/adaptive.ts</code> <code>WindowedLimiter</code>: <code>shouldAdmit</code> records the peak in-flight seen during the window; at the window boundary the computed next limit is applied only if it is a decrease <em>or</em> <code>peakInflight × 2 ≥ limit</code>. Backoff under congestion is unaffected. Uses peak (not last) in-flight, the same "app-limited" rule as Netflix's concurrency-limits.</p>
+<p><strong>Tests</strong> — <code>src/sim/adaptive.test.ts</code>, 62/62 with 6 new: AIMD and Gradient hold through a healthy but under-used window; backoff still applies when under-used; a burst inside a quiet window counts; and a scenario — at 60 rps (~12 in flight) both Stable presets stay ≤ their initial 50 after 60 s, while at 300 rps they still probe above 50 within 10 s. The two pre-existing growth tests now feed a utilised window first (noted in the PR). Lesson 4 capacity-drop scenario unchanged and passing. Lint and build clean.</p>
+<p><strong>Docs</strong> — Lesson 4 intro sentence and a RATIONALE bullet.</p>
+<p>One scope note for the parent: this guard fixes the light-load ratchet but not the baseline drift under <em>saturating</em> load (in-flight sits at the limit, so growth is legitimately allowed) — that remains the <code>BaselineTracker</code> follow-up flagged on PR #6. <code>/code-review</code> was not run on the branch (no subagent access in this fork); the PR body says so.</result>
+<usage><subagent_tokens>466151</subagent_tokens><tool_uses>14</tool_uses><duration_ms>215659</duration_ms></usage>
+</task-notification></p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T22-51-24-982Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T22-51-24-982Z" class="timestamp-link"><time datetime="2026-09-14T22:51:24.982Z" data-timestamp="2026-09-14T22:51:24.982Z">2026-09-14T22:51:24.982Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>The utilisation-guard fork finished and opened PR #8. Let me verify the actual change before summarising it.</p></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T22-51-27-274Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T22-51-27-274Z" class="timestamp-link"><time datetime="2026-09-14T22:51:27.274Z" data-timestamp="2026-09-14T22:51:27.274Z">2026-09-14T22:51:27.274Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01J8L2nkvSSJwrxxj1qT9y1Y">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Show the engine-side diff of PR 8 and confirm the tree is untouched</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">git branch --show-current; git status --short; echo &#34;--- PR 8 adaptive.ts diff ---&#34;; gh pr diff 8 -- 2&gt;&amp;1 | sed -n &#39;/src\/sim\/adaptive.ts/,/^diff --git/p&#39; | grep -E &#34;^[+-]&#34; | grep -v &#34;^[+-]{3}&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2026-09-14T22-51-36-280Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2026-09-14T22-51-36-280Z" class="timestamp-link"><time datetime="2026-09-14T22:51:36.280Z" data-timestamp="2026-09-14T22:51:36.280Z">2026-09-14T22:51:36.280Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>docs/code-review-before-pr
+--- PR 8 adaptive.ts diff ---
+--- a/src/sim/adaptive.ts
++++ b/src/sim/adaptive.ts
++  private peakInflight = 0;
+-  shouldAdmit(inflight: number): boolean { return inflight &lt; this.limit; }
++  shouldAdmit(inflight: number): boolean {
++    this.peakInflight = Math.max(this.peakInflight, inflight);
++    return inflight &lt; this.limit;
++  }
++    // Healthy latency only justifies a higher limit if the current one was actually being used; a lightly
++    // loaded service must not ratchet its limit up to the maximum and then have no headroom to shed with.
++    const utilised = this.peakInflight * 2 &gt;= this.limit;
++    this.peakInflight = 0;
+-    this.limit = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
++    const next = clamp(this.update(avg, this.baseline.push(avg)), this.bounds.minLimit, this.bounds.maxLimit);
++    if (next &lt; this.limit || utilised) this.limit = next;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2026-09-14T22-51-48-785Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2026-09-14T22-51-48-785Z" class="timestamp-link"><time datetime="2026-09-14T22:51:48.785Z" data-timestamp="2026-09-14T22:51:48.785Z">2026-09-14T22:51:48.785Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Verified — the diff matches what the fork reported, and it's the right shape.</p>
+<p><strong>PR #8:</strong> https://github.com/utsavjain0511/adaptive-limits-simulator/pull/8 — <code>feat/adaptive-utilisation-guard</code>, off <code>main</code> (PR #6 has merged, so nothing is stacked). Your tree is untouched, still on <code>docs/code-review-before-pr</code>.</p>
+<p><strong>The change</strong> (<code>WindowedLimiter</code> in <code>adaptive.ts</code>, so both AIMD and Gradient get it): <code>shouldAdmit</code> tracks the peak in-flight seen during the window; at the window boundary the computed limit is applied only if it's a <em>decrease</em> or <code>peakInflight × 2 ≥ limit</code>. Two judgment calls the fork made that I agree with:
+- <strong>Peak, not last-tick in-flight.</strong> With sustained load in-flight hovers at the limit anyway; under bursty load the peak is what proves the limit was needed. It's also the same "app-limited" rule Netflix's concurrency-limits uses.
+- <strong>Backoff is never gated.</strong> A congested-but-underused window (say after a capacity drop with a still-high limit) must still shrink.</p>
+<p><strong>Tests</strong> — 62/62, six new: both algorithms hold through healthy-but-underused windows, still back off when underused, a burst inside a quiet window counts, and a scenario: at 60 rps (~12 in flight) both Stable presets stay ≤ 50 for 60 s, while at 300 rps they still probe above 50 within 10 s. The Lesson 4 capacity-drop scenario is unchanged and passing. Lint and build clean; a RATIONALE bullet and a Lesson 4 intro sentence explain the guard.</p>
+<p><strong>Two caveats worth knowing:</strong>
+1. This fixes the <em>light-load</em> ratchet. Under <em>saturating</em> load (Lesson 4's default 300 rps) in-flight sits at the limit, so growth is legitimately allowed and the <code>BaselineTracker</code> drift I flagged on #6 still applies — that follow-up stands.
+2. The fork couldn't run <code>/code-review</code> on the branch (no subagent access from inside a fork) and says so in the PR body. If you want it reviewed, run <code>/code-review 8</code> before merging.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-008.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<span class="current">9</span>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-010.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

@@ -47,11 +47,27 @@ export function Lesson4() {
   return (
     <LessonLayout spec={spec} lab={lab}
       title="Adaptive concurrency limits"
-      intro="Instead of guessing a limit, measure it. Both algorithms compare request latency with the time the backend actually spends serving a request: when latency exceeds it, requests are waiting for a worker, so the limit shrinks; when nothing is waiting and at least half the limit is in use, the limit probes upward. Same capacity drop as before."
+      intro={<>
+        <p>Instead of guessing a limit, measure it. Three insights make that possible:</p>
+        <ul>
+          <li><b>Little's law.</b> In steady state, <code>concurrency = average latency × average RPS</code>. The relation holds until in-flight requests reach the service's concurrency limit and queueing begins.</li>
+          <li><b>Measuring load with latency.</b> When concurrency spikes beyond the limit, latency spikes too, because requests wait for a worker. Latency in excess of the backend's own processing time is the queue.</li>
+          <li><b>Feedback-based concurrency limits.</b> Using the latency gradient or the window's average latency as a feedback signal, the limiter adjusts the admitted concurrency to the capacity it can measure. Same capacity drop as before.</li>
+        </ul>
+      </>}
       watch={[
-        'AIMD (TCP-style): +step per healthy window, ×backoff when latency exceeds threshold × baseline. Simple and robust; it always probes above capacity until latency says stop, so it draws a saw-tooth.',
-        'Gradient (Netflix concurrency-limits style): limit ← limit × (tolerance × baseline / latency) + headroom, smoothed. Proportional, smoother, tunable.',
-        'Presets: Stable tracks the drop and recovers in seconds. Aggressive over-reacts — AIMD swings between a handful and ~70 in flight, Gradient over-shrinks and parks at its floor. Sluggish reacts late and takes a long time to grow back. Move the sliders to feel the stability-vs-responsiveness trade-off.',
+        <><b>AIMD</b> — additive increase, multiplicative decrease, the same idea as TCP congestion control. Each window: if the average latency is above <code>threshold × baseline</code>, <code>limit = limit × backoff</code>; otherwise <code>limit = limit + step</code>. It keeps raising the limit until requests slow down, then lowers it and repeats. This creates an up-and-down pattern and is simple to understand.</>,
+        <><b>Gradient</b> — the crux of Netflix's algorithm is the latency gradient, <code>gradient = clamp(tolerance × baselineLatency / windowAvgLatency, 0.5, 1)</code>, and the update step:
+          <pre>{'target = oldThreshold × gradient + headroom\nconcurrencyThreshold = clamp(oldThreshold × (1 − smoothing) + target × smoothing, minLimit, maxLimit)'}</pre>
+          Gradient adjusts the limit gradually based on how much requests slow down. AIMD raises it by a fixed amount, then cuts it by a fixed percentage when requests slow down, creating an up-and-down pattern.
+        </>,
+        <><b>Presets</b> — move the sliders to feel the stability-vs-responsiveness trade-off.
+          <ul>
+            <li><b>Stable</b> tracks the drop and recovers in seconds.</li>
+            <li><b>Aggressive</b> over-reacts: AIMD swings between a handful and ~70 in flight; Gradient over-shrinks and parks at its floor.</li>
+            <li><b>Sluggish</b> reacts late and takes a long time to grow back.</li>
+          </ul>
+        </>,
       ]}
       events={[{ label: CAPACITY_DROP_LABEL, event: CAPACITY_DROP }]}
     >
